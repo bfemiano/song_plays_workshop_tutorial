@@ -2,7 +2,7 @@
 Note: This is to regenerate the listeners.parquet and spins.parquet data files locally. Students shouldn't have to run this
 The files are provided on S3. 
 
-1. If not a fresh checkout, make sure the directories listeners_parquet and spins_parquet dirs don't exist in the basedir. I don't automatically clean these up after runs because
+1. If not a fresh checkout, make sure the tmp_ directories don't exist in the basedir. I don't automatically clean these up after runs because
    I'm not a fan of code that recursively removes directories, no matter how foolproof things might sound. Call me cautious. 
 
 2. You'll need access to the real metadata to parse. On my local workstation this is located at `/Users/bfemiano/Downloads/metadata`. This is why students won't be able to run this script. 
