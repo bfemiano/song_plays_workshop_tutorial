@@ -13,30 +13,28 @@ Use the VM [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/b
 ## For Linux:
 
 1. Add Java, Scala and Gradle
-
-Java: </br>
-`sudo apt install openjdk-8-jdk` </br>
-Scala: </br>
-`wget www.scala-lang.org/files/archive/scala-2.11.8.deb` </br>
-`sudo dpkg -i scala-2.11.8.deb` </br>
-Gradle: </br>
-`sudo apt install gradle` </br>
-
+   Java: </br>
+   `sudo apt install openjdk-8-jdk` </br>
+   Scala: </br>
+   `wget www.scala-lang.org/files/archive/scala-2.11.8.deb` </br>
+   `sudo dpkg -i scala-2.11.8.deb` </br>
+   Gradle: </br>
+   `sudo apt install gradle` </br>
 2. If not already installed, get Python 2.7 and latest pip. </br>
-`sudo apt update` </br>
-`sudo apt upgrade` </br>
-`sudo apt install python2.7 python-pip` </br>
+   `sudo apt update` </br>
+   `sudo apt upgrade` </br>
+   `sudo apt install python2.7 python-pip` </br>
 
 To verify steps 1 and 2:</br>
-`java -version`</br>
+`java -version`</br></br>
 Expected output: `openjdk version "1.8.0_191"` or similar 1.8 version.</br> 
-`scala -version`</br>
+`scala -version`</br></br>
 Expected output `Scala code runner version 2.11.8 -- Copyright 2002-2016, LAMP/EPFL` or similar 2.11 version.</br> 
-`gradle -version`</br> 
+`gradle -version`</br></br> 
 Expected output: `Gradle 3.4.1` or similar 3.4 version.</br> 
-`python —version`</br>
+`python —version`</br></br>
 Expected output: `Python 2.7.15rc1` or similar version. (2.7.12, 2.17.13, etc.)</br>
-`pip —version`</br>
+`pip —version`</br></br>
 Expected output: `pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)` or similar version.</br> 
     
     
