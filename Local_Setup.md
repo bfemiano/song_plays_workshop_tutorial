@@ -25,17 +25,17 @@ Use the VM [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/b
     `sudo apt upgrade` </br>
     `sudo apt install python2.7 python-pip` </br>
 
-To verify steps 1 and 2:</br></br>
-`java -version`</br>
-Expected output: `openjdk version "1.8.0_191"` or similar 1.8 version.</br> </br>
-`scala -version`</br>
-Expected output `Scala code runner version 2.11.8 -- Copyright 2002-2016, LAMP/EPFL` or similar 2.11 version.</br></br> 
-`gradle -version`</br>
-Expected output: `Gradle 3.4.1` or similar 3.4 version.</br></br> 
-`python —version`</br>
-Expected output: `Python 2.7.15rc1` or similar version. (2.7.12, 2.17.13, etc.)</br></br>
-`pip —version`</br>
-Expected output: `pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)` or similar version.</br> 
+    To verify steps 1 and 2:</br></br>
+    `java -version`</br>
+    Expected output: `openjdk version "1.8.0_191"` or similar 1.8 version.</br> </br>
+    `scala -version`</br>
+    Expected output `Scala code runner version 2.11.8 -- Copyright 2002-2016, LAMP/EPFL` or similar 2.11 version.</br></br> 
+    `gradle -version`</br>
+    Expected output: `Gradle 3.4.1` or similar 3.4 version.</br></br> 
+    `python —version`</br>
+    Expected output: `Python 2.7.15rc1` or similar version. (2.7.12, 2.17.13, etc.)</br></br>
+    `pip —version`</br>
+    Expected output: `pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)` or similar version.</br> 
     
     
 3. Install Luigi:</br>   
@@ -54,8 +54,8 @@ Enter the below</br>
 ```bash
 export SPARK_HOME=/opt/spark-2.2.1
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-export PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
-```</br>
+export PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH```
+
 `source .bash_profile`</br> 
 Run the command: `spark-submit`</br> 
 Expected output `Usage: spark-submit [options] ...` plus many more lines. 
