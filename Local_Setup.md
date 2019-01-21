@@ -51,11 +51,13 @@ Expected output: `No task specified`
 4. Setup bash profile for Spark:</br> 
 `vi ~/.bash_profile`</br> 
 Enter the below</br> 
+
 ```bash
 export SPARK_HOME=/opt/spark-2.2.1
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-export PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH```
+export PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
+```
 
-`source .bash_profile`</br> 
+source .bash_profile</br> 
 Run the command: `spark-submit`</br> 
 Expected output `Usage: spark-submit [options] ...` plus many more lines. 
