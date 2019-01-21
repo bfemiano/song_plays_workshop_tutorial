@@ -1,0 +1,15 @@
+{
+  "name": "bfemiano/song_plays_tutorial",
+  "description": "This box contains Ubuntu 18.04 bionic beaver, preloaded with Java 8, Scala 2.11, Python 2.7, Gradle 3.4, Spotify luigi and Spark 2.2.1",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "providers": [
+        {
+          "name": "virtualbox",
+          "url": "https://s3.amazonaws.com/storage-handler-docs/song_plays_tutorial.box"
+        }
+      ]
+    }
+  ]
+}
