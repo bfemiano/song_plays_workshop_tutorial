@@ -15,7 +15,7 @@ Use the VM [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/b
 1. Add Java, Scala and Gradle
 
 Java: 
-    {{sudo apt install openjdk-8-jdk}}
+    `sudo apt install openjdk-8-jdk`
 Scala: 
     {{wget www.scala-lang.org/files/archive/scala-2.11.8.deb}}
     {{sudo dpkg -i scala-2.11.8.deb}}
