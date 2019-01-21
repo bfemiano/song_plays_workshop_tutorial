@@ -1,6 +1,9 @@
 import random
-from pyspark import SparkContext, SparkConf
 import logging
+import os
+from shutil import copyfile
+
+from pyspark import SparkContext, SparkConf
 from pyspark.sql.types import *
 from pyspark.sql import SQLContext, SparkSession
 
@@ -18,7 +21,7 @@ subscription_types = ['Ad-supported', 'Plus', 'Premium', 'Premium-family-plan']
 play_sources = ['Station', 'Album', 'Collections', 'Playlist', 'Thumed Up Track', 'Thumbed Down Track', 'Autoplay', 'All Artist Tracks']
 
 print "Making fake listener data"
-with open('./fake_listeners.tsv', 'w') as listeners_out:
+with open('./data/fake_listeners.tsv', 'w') as listeners_out:
     listeners_out.write('\t'.join(['fake_listener_id', 'age', 'gender', 'subscription_type', 'country', 'fake_zipcode\n']))
     for fake_listener_id in fake_listener_ids:
         fake_age = age_buckets[random.randint(0, len(age_buckets)-1)]
@@ -31,7 +34,7 @@ with open('./fake_listeners.tsv', 'w') as listeners_out:
 
 print "Done\nMaking fake spin data"
 with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
-    with open('./fake_spins.tsv', 'w') as out_data:
+    with open('./data/fake_spins.tsv', 'w') as out_data:
         lines = base_metadata.readlines()
         header = lines[0]
         out_data.write('\t'.join(["fake_artist_id", "artist_name", "fake_track_id", "track_title", "elapsed_seconds", "play_source", "fake_listener_id\n"]))
@@ -68,17 +71,25 @@ print "Done\nConverting to Parquet"
 print "Writing parquet"
 spark = SparkSession.builder.master('local').appName('blah').config(conf=SparkConf()).getOrCreate()
 
-raw_listeners = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("fake_listeners.tsv")
-raw_listeners.write.parquet('./listeners_parquet')
+raw_listeners = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("data/fake_listeners.tsv")
+raw_listeners.write.parquet('./tmp_listeners_parquet')
 
-raw_spins = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("fake_spins.tsv")
-raw_spins.write.parquet("./spins_parquet")
+raw_spins = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("data/fake_spins.tsv")
+raw_spins.write.parquet("./tmp_spins_parquet")
+
+print "Copying Parquet data to basedir location"
+listener_file = filter(lambda x: x.startswith('part'), os.listdir('./tmp_listeners_parquet'))[0]
+copyfile("./tmp_listeners_parquet/%s" % listener_file, "data/listeners.snappy.parquet")
+spins_file = filter(lambda x: x.startswith('part'), os.listdir('./tmp_spins_parquet'))[0]
+copyfile("./tmp_spins_parquet/%s" % spins_file, "data/spins.snappy.parquet")
 
 print "Verifying parquet integrity"
-listeners_df = spark.read.parquet('./listeners_parquet')
-spins_df = spark.read.parquet('./spins_parquet')
+print "--------------Sample 5 records--------------------"
+listeners_df = spark.read.parquet('./data/listeners.snappy.parquet')
+spins_df = spark.read.parquet('./data/spins.snappy.parquet')
 joined = spins_df.join(listeners_df, on='fake_listener_id')
 for i in joined.take(5):
     print i
+print "--------------------------------------------------"
 
 print "Done"

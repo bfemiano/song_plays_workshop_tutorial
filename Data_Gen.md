@@ -14,7 +14,9 @@ The files are provided on S3.
 You should see 5 sample rows printout to verify the listeners and spins TSV data joined together correctly with on the fake_listener_id. 
 
 
-5. The data will go under listeners_parquet and spins_parquet. Rename the part files and move to somewhere else. 
+5. The data will go under tmp_listeners_parquet and tmp_spins_parquet. 
+
+6. The part files from the tmp parquet locations will get copied to ./data and renamed to 'listeners.snappy.parquet' and 'spins.snappy.parquet'. 
 
 
 ## What the script does.
