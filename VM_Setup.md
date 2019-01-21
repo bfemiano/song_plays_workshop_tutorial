@@ -17,8 +17,8 @@ config.ssh.username="student"
 config.ssh.password=“password"
 ```
 
-`vagrant up`
-`vagrant ssh`
+5. `vagrant up`
+6. `vagrant ssh`
 
 
 ## Directly from the .box file. 
@@ -32,8 +32,8 @@ config.ssh.username="student"
 config.ssh.password=“password"
 ```
 
-`vagrant up`
-`vagrant ssh`
+5. `vagrant up`
+6. `vagrant ssh`
 
 
 ## To scp into vagrant box without vagrant ssh
