@@ -8,7 +8,7 @@ Once you have everything installed, run the verify commands below to double chec
 
 ## For Windows
 
-Use the VM [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/VM_Setup.md)
+Use the [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/VM_Setup.md)
 
 ## For Linux:
 
