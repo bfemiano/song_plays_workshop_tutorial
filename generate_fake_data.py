@@ -34,12 +34,11 @@ with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
     with open('./fake_spins.tsv', 'w') as out_data:
         lines = base_metadata.readlines()
         header = lines[0]
-        out_data.write('\t'.join(["fake_artist_id", "artist_name", "artist_uri", "fake_track_id", "track_title", "track_uri", "elapsed_seconds", "play_source", "fake_listener_id\n"]))
+        out_data.write('\t'.join(["fake_artist_id", "artist_name", "fake_track_id", "track_title", "elapsed_seconds", "play_source", "fake_listener_id\n"]))
         for line in lines[1:]:
             throttle = random.randint(0, 20) #Only keep 5% of the original data, just to keep size down. 
             if throttle == 1:
                 (artist_id, artist_name, artist_uri, track_id, track_title, track_uri, isrc, upc, partner_id) = line.split('\t')
-                artist_uri = str(random.randint(0, 10000))
                 index = random.randint(0, len(fake_listener_ids)-1)
                 fake_listener_id = fake_listener_ids[index]
                 fake_play_source = play_sources[random.randint(0, len(play_sources)-1)] 
@@ -60,8 +59,8 @@ with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
                     del fake_track_ids[index]
                     fake_track_title = track_title
                     track_id_map[track_id] = (fake_track_id, track_title)
-                out_data.write('\t'.join([str(fake_artist_id), fake_artist_name, artist_uri, 
-                                          str(fake_track_id),  fake_track_title, track_uri,  
+                out_data.write('\t'.join([str(fake_artist_id), fake_artist_name,  
+                                          str(fake_track_id),  fake_track_title,  
                                           str(elapsed_seconds), fake_play_source, str(fake_listener_id)]))
                 out_data.write('\n')
 print "Done\nConverting to Parquet"
@@ -72,9 +71,14 @@ spark = SparkSession.builder.master('local').appName('blah').config(conf=SparkCo
 raw_listeners = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("fake_listeners.tsv")
 raw_listeners.write.parquet('./listeners_parquet')
 
-raw_spins = spark.read.format("csv").option("header", "true").option("delimiter", "\t").load("fake_spins.tsv")
+raw_spins = spark.read.format("csv").option("header", "true").option("delimiter", "\t").option("inferSchema", "true").load("fake_spins.tsv")
 raw_spins.write.parquet("./spins_parquet")
 
-# TODO verify the file integrity of each by reading them back in and looking at a field. 
+print "Verifying parquet integrity"
+listeners_df = spark.read.parquet('./listeners_parquet')
+spins_df = spark.read.parquet('./spins_parquet')
+joined = spins_df.join(listeners_df, on='fake_listener_id')
+for i in joined.take(5):
+    print i
 
 print "Done"
