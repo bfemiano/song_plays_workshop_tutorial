@@ -58,6 +58,6 @@ export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 export PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
 ```
 
-source .bash_profile</br> 
+`source .bash_profile`</br> 
 Run the command: `spark-submit`</br> 
 Expected output `Usage: spark-submit [options] ...` plus many more lines. 
