@@ -36,6 +36,9 @@ config.ssh.password=“password"
 5. `vagrant ssh`
 
 
+## File mount point.
+Data placed in the same directory as the Vagrantfile will appear on the Guest OS under the location `/vagrant`
+
 ## To scp into vagrant box without vagrant ssh
 `ssh student@127.0.0.1 -p 2222`
 
