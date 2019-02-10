@@ -1,11 +1,9 @@
 package com.song.plays
 
-import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.SparkConf
-import org.slf4j.LoggerFactory
 
-object DatasetGen extends LazyLogging {
+object DatasetGen {
 
   case class Config(day: String = "",
                     listeners_path: String = "",

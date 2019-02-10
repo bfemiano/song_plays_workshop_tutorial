@@ -43,7 +43,6 @@ dependencies {
     compile 'org.apache.spark:spark-core_2.11:2.2.0'
     compile 'org.apache.spark:spark-hive_2.11:2.2.0'
     compile 'com.github.scopt:scopt_2.11:3.7.0'
-    compile 'com.typesafe.scala-logging:scala-logging-slf4j_2.11:2.1.2'
     compile 'com.databricks:spark-csv_2.11:1.0.1'
     testCompile 'org.scalatest:scalatest_2.11:3.0.4'
 }
