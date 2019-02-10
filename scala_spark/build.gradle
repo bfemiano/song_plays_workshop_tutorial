@@ -1,0 +1,53 @@
+
+description = 'song_plays'
+version = "1.0.0"
+
+
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        setUrl('https://repository.cloudera.com/artifactory/cloudera-repos/')
+    }
+}
+
+/**
+ * Update the shadowJar task with necessary properties to compile our fat jar correctly
+ */
+shadowJar {
+    classifier = 'jar-with-dependencies'
+    zip64 = true
+}
+
+dependencies {
+
+    compile 'org.scala-lang:scala-library:2.11'
+    compile 'org.apache.spark:spark-sql_2.11:2.2.0'
+    compile 'org.apache.spark:spark-core_2.11:2.2.0'
+    compile 'org.apache.spark:spark-hive_2.11:2.2.0'
+    compile 'com.github.scopt:scopt_2.11:3.7.0'
+    compile 'com.typesafe.scala-logging:scala-logging-slf4j_2.11:2.1.2'
+    compile 'com.databricks:spark-csv_2.11:1.0.1'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'ch.qos.logback:logback-core:1.2.3'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.6'
+    compile 'net.logstash.logback:logstash-logback-encoder:4.11'
+    testCompile 'org.scalatest:scalatest_2.11:3.0.4'
+}
