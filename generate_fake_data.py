@@ -17,8 +17,8 @@ listener_id_map = {}
 
 age_buckets = ['18-25', '26-40', '40-55', '65+']
 genders = ['M', 'F', "Unknown"]
-subscription_types = ['Ad-supported', 'Plus', 'Premium', 'Premium-family-plan']
-play_sources = ['Station', 'Album', 'Collections', 'Playlist', 'Thumed Up Track', 'Thumbed Down Track', 'Autoplay', 'All Artist Tracks']
+subscription_types = ['Ad-supported', 'Plus', 'Premium', 'Family']
+play_sources = ['Station', 'Album', 'Collections', 'Playlist', 'Thumbed Up Track', 'Thumbed Down Track', 'Autoplay', 'All Artist Tracks']
 
 print "Making fake listener data"
 with open('./data/fake_listeners.tsv', 'w') as listeners_out:

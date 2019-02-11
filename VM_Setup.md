@@ -11,7 +11,7 @@ Note: Whether installing directly from the song_plays_tutorial.box file for usin
 1. `wget https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/song_plays_tutorial.json`  
 2. `vagrant box add song_plays_tutorial.json`
 3. `vagrant init bfemiano/song_plays_tutorial`
-4. add the below lines to VagrantFile 
+4. add the below lines to VagrantFile on the line right below the config.vm.box config. 
 ```
 config.ssh.username="student"
 config.ssh.password="password"
@@ -26,7 +26,7 @@ config.ssh.password="password"
 
 1. `vagrant box add --name bfemiano/song_plays_tutorial /some/path/to/song_plays_tutorial.box`
 2. vagrant init bfemiano/song_plays_tutorial
-3. add the below lines to VagrantFile 
+3. add the below lines to VagrantFile on the line right below the config.vm.box config. 
 ```
 config.ssh.username="student"
 config.ssh.password="password"
