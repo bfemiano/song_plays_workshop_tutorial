@@ -9,7 +9,7 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class DatasetGenTest extends FunSuite {
 
-  test("analysis") {
+  test("count spins by zipcode and subscription type") {
     val session = SparkSession.builder().master("local").getOrCreate()
     val spins = session.sparkContext.parallelize(List(
       (90210, "Family"),
