@@ -27,7 +27,7 @@ with open('./data/fake_listeners.tsv', 'w') as listeners_out:
         fake_age = age_buckets[random.randint(0, len(age_buckets)-1)]
         fake_gender = genders[random.randint(0, len(genders)-1)]
         fake_subscription_type = subscription_types[random.randint(0, len(subscription_types)-1)]
-        fake_zipcode = str(random.randint(0, 99999))
+        fake_zipcode = str(random.randint(10000, 99999))
         listener_id_map[id] = (fake_age, fake_gender, fake_subscription_type, 'US', fake_zipcode)
         listeners_out.write('\t'.join([str(fake_listener_id), fake_age, fake_gender, fake_subscription_type, 'US', fake_zipcode]))
         listeners_out.write('\n')

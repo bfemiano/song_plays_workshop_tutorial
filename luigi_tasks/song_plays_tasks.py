@@ -110,7 +110,7 @@ class DatasetGen(SparkSubmitTask):
     def output(self):
         path = "data/output/%Y/%m/%d/"
         data_path = self.date.strftime(os.path.join(path, 'dataset'))
-        analysis_path = self.date.strftime(os.path.join(path, 'analysis_path'))
+        analysis_path = self.date.strftime(os.path.join(path, 'counts_by_zip_sub'))
         return {'dataset': luigi.LocalTarget(data_path),
                 'analysis': luigi.LocalTarget(analysis_path)}
 
