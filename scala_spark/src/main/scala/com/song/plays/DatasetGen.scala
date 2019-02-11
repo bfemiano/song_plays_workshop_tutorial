@@ -1,7 +1,6 @@
 package com.song.plays
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{SparkSession,DataFrame}
 import org.apache.spark.SparkConf
 
 object DatasetGen {
@@ -51,17 +50,9 @@ object DatasetGen {
 
     val cfg = getParser(args)
 
-    val conf = new SparkConf()
-    conf.set("spark.yarn.executor.memoryOverhead", "2048")
-    conf.set("spark.sql.shuffle.partitions", "2048")
-
     val session = SparkSession
       .builder()
-      .config(conf)
       .getOrCreate()
-
-    println("RUNNING JAR")
-    println(cfg.day)
 
     val listeners_df = session.read.parquet(cfg.listeners_path)
     val spins_df = session.read.parquet(cfg.spins_path)
