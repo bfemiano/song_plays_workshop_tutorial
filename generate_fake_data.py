@@ -37,7 +37,7 @@ with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
     with open('./data/fake_spins.tsv', 'w') as out_data:
         lines = base_metadata.readlines()
         header = lines[0]
-        out_data.write('\t'.join(["fake_artist_id", "artist_name", "fake_track_id", "track_title", "elapsed_seconds", "play_source", "fake_listener_id\n"]))
+        out_data.write('\t'.join(["fake_artist_id", "artist_name", "fake_track_id", "track_title", "date_time", "elapsed_seconds", "play_source", "fake_listener_id\n"]))
         for line in lines[1:]:
             throttle = random.randint(0, 20) #Only keep 5% of the original data, just to keep size down. 
             if throttle == 1:
@@ -46,6 +46,10 @@ with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
                 fake_listener_id = fake_listener_ids[index]
                 fake_play_source = play_sources[random.randint(0, len(play_sources)-1)] 
                 elapsed_seconds = random.randint(0, 300)
+                hour = random.randint(0, 23)
+                minute = random.randint(0, 59)
+                second = random.randint(0, 59)
+                fake_datetime = "2019-02-08 %i:%i:%i" % (hour, minute, second)
                 if artist_id in artist_id_map:
                     fake_artist_id, fake_artist_name = artist_id_map[artist_id]
                 else:
@@ -64,7 +68,7 @@ with open('/Users/bfemiano/Downloads/metadata.txt', 'r') as base_metadata:
                     track_id_map[track_id] = (fake_track_id, track_title)
                 out_data.write('\t'.join([str(fake_artist_id), fake_artist_name,  
                                           str(fake_track_id),  fake_track_title,  
-                                          str(elapsed_seconds), fake_play_source, str(fake_listener_id)]))
+                                          str(fake_datetime), str(elapsed_seconds), fake_play_source, str(fake_listener_id)]))
                 out_data.write('\n')
 print "Done\nConverting to Parquet"
 
@@ -81,12 +85,12 @@ print "Copying Parquet data to basedir location"
 listener_file = filter(lambda x: x.startswith('part'), os.listdir('./tmp_listeners_parquet'))[0]
 copyfile("./tmp_listeners_parquet/%s" % listener_file, "data/listeners.snappy.parquet")
 spins_file = filter(lambda x: x.startswith('part'), os.listdir('./tmp_spins_parquet'))[0]
-copyfile("./tmp_spins_parquet/%s" % spins_file, "data/spins.snappy.parquet")
+copyfile("./tmp_spins_parquet/%s" % spins_file, "data/spins-2019-02-08.snappy.parquet")
 
 print "Verifying parquet integrity"
 print "--------------Sample 5 records--------------------"
 listeners_df = spark.read.parquet('./data/listeners.snappy.parquet')
-spins_df = spark.read.parquet('./data/spins.snappy.parquet')
+spins_df = spark.read.parquet('./data/spins-2019-02-08.snappy.parquet')
 joined = spins_df.join(listeners_df, on='fake_listener_id')
 for i in joined.take(5):
     print i

@@ -5,6 +5,7 @@ Then explain Listeners download task. Explain why it has an additional target.
 
 luigi --module song_plays_tasks DownloadSpins --date 2019-02-08 --local-scheduler
 luigi --module song_plays_tasks DownloadListeners --date 2019-02-08 --local-scheduler
+luigi --module song_plays_tasks DatasetGen --date 2019-02-08 --local-scheduler
 
 make the file song_plays_tasks.py 
 
@@ -15,3 +16,5 @@ luigi --module song_plays_tasks ExternalFileChecker --url https://s3.amazonaws.c
 Checkpoint:
     Running with --url = https://s3.amazonaws.com/storage-handler-docs/listeners.snappy.parquet should show :)
     Running with --url = some non-existance URL should show :| 
+
+

@@ -5,7 +5,7 @@ The files are provided on S3.
 1. If not a fresh checkout, make sure the tmp_ directories don't exist in the basedir. I don't automatically clean these up after runs because
    I'm not a fan of code that recursively removes directories, no matter how foolproof things might sound. Call me cautious. 
 
-2. You'll need access to the real metadata to parse. On my local workstation this is located at `/Users/bfemiano/Downloads/metadata`. This is why students won't be able to run this script. 
+2. You'll need access to the real metadata to parse. On my local workstation this is located at `/Users/bfemiano/Downloads/metadata.txt`. This is why students won't be able to run this script. 
 
 3. Make sure PySpark 2.2.1 is on the PYTHONPATH or part of the local pipenv install
 
@@ -16,7 +16,7 @@ You should see 5 sample rows printout to verify the listeners and spins TSV data
 
 5. The data will go under tmp_listeners_parquet and tmp_spins_parquet. 
 
-6. The part files from the tmp parquet locations will get copied to ./data and renamed to 'listeners.snappy.parquet' and 'spins.snappy.parquet'. 
+6. The part files from the tmp parquet locations will get copied to ./data and renamed to 'listeners.snappy.parquet' and 'spins-2019-02-08.snappy.parquet'. 
 
 
 ## What the script does.

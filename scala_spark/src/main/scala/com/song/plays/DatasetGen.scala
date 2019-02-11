@@ -1,6 +1,7 @@
 package com.song.plays
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.SparkConf
 
 object DatasetGen {
@@ -42,6 +43,10 @@ object DatasetGen {
     cfg
   }
 
+  def join(spins_df: DataFrame, listeners_df: DataFrame) = {
+    spins_df.join(listeners_df, "fake_listener_id")
+  }
+
   def main(args: Array[String]): Unit = {
 
     val cfg = getParser(args)
@@ -52,11 +57,22 @@ object DatasetGen {
 
     val session = SparkSession
       .builder()
-      .enableHiveSupport()
       .config(conf)
       .getOrCreate()
 
     println("RUNNING JAR")
     println(cfg.day)
+
+    val listeners_df = session.read.parquet(cfg.listeners_path)
+    val spins_df = session.read.parquet(cfg.spins_path)
+    val joined_df = join(spins_df, listeners_df)
+    val deduped_df = joined_df.distinct()
+
+    deduped_df.repartition(1).write.
+      option("header", "true").
+      option("codec", "org.apache.hadoop.io.compress.GzipCodec").
+      option("delimiter", "\t").
+      option("quote", "\u0000"). // We don't want to quote anything.
+      csv(cfg.out_path)
   }
 }

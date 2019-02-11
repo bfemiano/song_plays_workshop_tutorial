@@ -32,7 +32,8 @@ def make_local_dirs_if_not_exists(path):
 class DownloadSpins(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://s3.amazonaws.com/storage-handler-docs/spins.snappy.parquet"
+    url = "https://s3.amazonaws.com/storage-handler-docs/"
+    file_name = "spins-%Y-%m-%d.snappy.parquet"
 
     def output(self):
         path = 'data/spins/%Y/%m/%d/spins.snappy.parquet'
@@ -40,13 +41,15 @@ class DownloadSpins(luigi.Task):
         return luigi.LocalTarget(path)
 
     def requires(self):
-        return ExternalFileChecker(url=self.url)
+        full_url = os.path.join(self.url, self.date.strftime(self.file_name))
+        return ExternalFileChecker(url=full_url)
 
     def run(self):
         path = self.output().path
         make_local_dirs_if_not_exists(path)
+        full_url = os.path.join(self.url, self.date.strftime(self.file_name))
         with open(path, 'w') as out_file:
-            for data in urlopen(self.url).read():
+            for data in urlopen(full_url).read():
                 out_file.write(data)
 
 
@@ -86,10 +89,10 @@ class DatasetGen(SparkSubmitTask):
 
     # Spark properties
     driver_memory = '1g'
-    executor_cores = 1
+    executor_cores = 2
     driver_cores = 1
-    executor_memory = '1g'
-    num_executors = 1
+    executor_memory = '2g'
+    num_executors = 2
     deploy_mode = 'client'
     spark_submit = 'spark-submit'
     master = 'local'
@@ -105,7 +108,7 @@ class DatasetGen(SparkSubmitTask):
         }
 
     def output(self):
-        path = "data/output/%Y/%m/%d/enriched_spins.snappy.parquet"
+        path = "data/output/%Y/%m/%d/"
         path = self.date.strftime(path)
         return luigi.LocalTarget(path)
 
