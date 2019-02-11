@@ -1,14 +1,15 @@
 package com.song.plays
 
 import org.apache.spark.sql.{SparkSession,DataFrame}
-import org.apache.spark.SparkConf
+import org.apache.spark.sql.functions.count
 
 object DatasetGen {
 
   case class Config(day: String = "",
                     listeners_path: String = "",
                     spins_path: String = "",
-                    out_path: String = "")
+                    dataset_out_path: String = "",
+                    analysis_out_path: String = "")
 
   /** Parse command line arguments for what's expected.
     * Throw an error if something goes wrong.
@@ -29,8 +30,11 @@ object DatasetGen {
       opt[String]("spins_path").action( (x, c) =>
         c.copy(spins_path = x) ).text("spins_path is a String property")
 
-      opt[String]("out_path").action( (x, c) =>
-        c.copy(out_path = x) ).text("out_path is a String property")
+      opt[String]("dataset_out_path").action( (x, c) =>
+        c.copy(dataset_out_path = x) ).text("dataset_out_path is a String property")
+
+      opt[String]("analysis_out_path").action( (x, c) =>
+        c.copy(analysis_out_path = x) ).text("analysis_out_path is a String property")
     }
 
     val cfg : Config = parser.parse(args, Config()) match {
@@ -42,8 +46,11 @@ object DatasetGen {
     cfg
   }
 
-  def join(spins_df: DataFrame, listeners_df: DataFrame) = {
-    spins_df.join(listeners_df, "fake_listener_id")
+  def analysis(deduped_df: DataFrame) = {
+    deduped_df.groupBy("fake_zipcode", "subscription_type").
+      agg(count("*").as("spins")).
+      select("fake_zipcode", "subscription_type", "spins").
+      orderBy("fake_zipcode", "subscription_type")
   }
 
   def main(args: Array[String]): Unit = {
@@ -56,7 +63,7 @@ object DatasetGen {
 
     val listeners_df = session.read.parquet(cfg.listeners_path)
     val spins_df = session.read.parquet(cfg.spins_path)
-    val joined_df = join(spins_df, listeners_df)
+    val joined_df = spins_df.join(listeners_df, "fake_listener_id")
     val deduped_df = joined_df.distinct()
 
     deduped_df.repartition(1).write.
@@ -64,6 +71,14 @@ object DatasetGen {
       option("codec", "org.apache.hadoop.io.compress.GzipCodec").
       option("delimiter", "\t").
       option("quote", "\u0000"). // We don't want to quote anything.
-      csv(cfg.out_path)
+      csv(cfg.dataset_out_path)
+
+    val spins_per_zip_subtype_df = analysis(deduped_df)
+    spins_per_zip_subtype_df.repartition(1).write.
+      option("header", "true").
+      option("codec", "org.apache.hadoop.io.compress.GzipCodec").
+      option("delimiter", "\t").
+      option("quote", "\u0000"). // We don't want to quote anything.
+      csv(cfg.analysis_out_path)
   }
 }

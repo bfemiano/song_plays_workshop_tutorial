@@ -109,17 +109,23 @@ class DatasetGen(SparkSubmitTask):
 
     def output(self):
         path = "data/output/%Y/%m/%d/"
-        path = self.date.strftime(path)
-        return luigi.LocalTarget(path)
+        data_path = self.date.strftime(os.path.join(path, 'dataset'))
+        analysis_path = self.date.strftime(os.path.join(path, 'analysis_path'))
+        return {'dataset': luigi.LocalTarget(data_path),
+                'analysis': luigi.LocalTarget(analysis_path)}
 
     def app_options(self):
         reqs_dict = self.requires()
+        outs_dict = self.output()
         listeners_path = reqs_dict['listeners'].output()['data'].path
         spins_path = reqs_dict['spins'].output().path
+        dataset_out_path = outs_dict['dataset'].path
+        analysis_out_path = outs_dict['analysis'].path
         args = [
             "--day", self.date.strftime("%Y-%m-%d"),
             "--listeners_path", listeners_path,
             "--spins_path", spins_path,
-            "--out_path", self.output().path,
+            "--dataset_out_path", dataset_out_path,
+            "--analysis_out_path", analysis_out_path,
         ]
         return args
