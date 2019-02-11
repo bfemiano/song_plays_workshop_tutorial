@@ -1,5 +1,6 @@
-Needs gradle wrapper --gradle-version=4.9 on Ubuntu
+Assuming working dir under /vagrant
 
-run with ./gradlew 
+cp -r ~/gradle /vagrant/scala_location
+cp ~/gradlew  /vagrant/scala_location
 
-Mention copying up to root location under the name song_plays.jar
+Mention mv the shadow jar built by gradle under scala_location/build/libs to the working dir with the name 'song_plays.jar'
