@@ -23,7 +23,7 @@ class DatasetGenTest extends FunSuite {
           StructField(name = "subscription_type", dataType = StringType, nullable = false)
         )
       ))
-    val results = DatasetGen.analysis(deduped_df).collect()
+    val results = DatasetGen.count_spins_by_zip_sub(deduped_df).collect()
     val mapped_results = results map (row => (row.getAs[Int](0),
                                               row.getAs[String](1),
                                               row.getAs[Int](2)))

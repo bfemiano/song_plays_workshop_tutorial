@@ -46,7 +46,7 @@ object DatasetGen {
     cfg
   }
 
-  def analysis(deduped_df: DataFrame) = {
+  def count_spins_by_zip_sub(deduped_df: DataFrame) = {
     deduped_df.groupBy("fake_zipcode", "subscription_type").
       agg(count("*").as("spins")).
       select("fake_zipcode", "subscription_type", "spins").
@@ -73,7 +73,7 @@ object DatasetGen {
       option("quote", "\u0000"). // We don't want to quote anything.
       csv(cfg.dataset_out_path)
 
-    val spins_per_zip_subtype_df = analysis(deduped_df)
+    val spins_per_zip_subtype_df = count_spins_by_zip_sub(deduped_df)
     spins_per_zip_subtype_df.repartition(1).write.
       option("header", "true").
       option("codec", "org.apache.hadoop.io.compress.GzipCodec").
