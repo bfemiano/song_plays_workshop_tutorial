@@ -1,15 +1,20 @@
 package com.song.plays
 
-import org.apache.spark.sql.{SparkSession,DataFrame}
-import org.apache.spark.sql.functions.count
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.{col, count, lit}
+
+final class FailedValidationError(msg: String) extends RuntimeException
 
 object DatasetGen {
 
   case class Config(day: String = "",
+                    minrows: Int = 0,
                     listeners_path: String = "",
                     spins_path: String = "",
                     dataset_out_path: String = "",
                     analysis_out_path: String = "")
+
 
   /** Parse command line arguments for what's expected.
     * Throw an error if something goes wrong.
@@ -23,6 +28,9 @@ object DatasetGen {
 
       opt[String]("day").action( (x, c) =>
         c.copy(day = x) ).text("day is a String property")
+
+      opt[Int]("minrows").action( (x, c) =>
+        c.copy(minrows = x) ).text("minrows is an Int property")
 
       opt[String]("listeners_path").action( (x, c) =>
         c.copy(listeners_path = x) ).text("listeners_path is a String property")
@@ -46,35 +54,53 @@ object DatasetGen {
     cfg
   }
 
-  def count_spins_by_zip_sub(deduped_df: DataFrame) = {
+  def filterOnSpinTime(spins: DataFrame) = {
+    spins.filter(col("elapsed_seconds") > lit(30))
+  }
+
+  def countSpinsBySub(deduped_df: DataFrame) = {
     deduped_df.groupBy("fake_zipcode", "subscription_type").
       agg(count("*").as("spins")).
       select("fake_zipcode", "subscription_type", "spins").
       orderBy("fake_zipcode", "subscription_type")
   }
 
+  def validate(numRows: Long, minrows: Int) = {
+    if (numRows < minrows) {
+      val msg = "The job failed validation. " +
+        "Number of rows: %d < %d".format(numRows, minrows)
+      throw new FailedValidationError(msg)
+    }
+  }
+
   def main(args: Array[String]): Unit = {
 
     val cfg = getParser(args)
 
+    val conf = new SparkConf()
+    conf.set("spark.sql.shuffle.partitions", "1")
+
     val session = SparkSession
       .builder()
+      .config(conf)
       .getOrCreate()
 
-    val listeners_df = session.read.parquet(cfg.listeners_path)
-    val spins_df = session.read.parquet(cfg.spins_path)
-    val joined_df = spins_df.join(listeners_df, "fake_listener_id")
-    val deduped_df = joined_df.distinct()
+    val listenersDF = session.read.parquet(cfg.listeners_path)
+    val spinsDF = filterOnSpinTime(session.read.parquet(cfg.spins_path))
+    val joinedDF = spinsDF.join(listenersDF, "fake_listener_id")
+    val dedupedDF = joinedDF.distinct()
+    val numRows = dedupedDF.count()
+    validate(numRows, cfg.minrows)
 
-    deduped_df.repartition(1).write.
+    dedupedDF.repartition(1).write.
       option("header", "true").
       option("codec", "org.apache.hadoop.io.compress.GzipCodec").
       option("delimiter", "\t").
       option("quote", "\u0000"). // We don't want to quote anything.
       csv(cfg.dataset_out_path)
 
-    val spins_per_zip_subtype_df = count_spins_by_zip_sub(deduped_df)
-    spins_per_zip_subtype_df.repartition(1).write.
+    val spinsPerZipSubDF = countSpinsBySub(dedupedDF)
+    spinsPerZipSubDF.repartition(1).write.
       option("header", "true").
       option("codec", "org.apache.hadoop.io.compress.GzipCodec").
       option("delimiter", "\t").
