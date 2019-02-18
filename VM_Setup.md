@@ -10,8 +10,8 @@ Note: Whether installing directly from the song_plays_tutorial.box file for usin
 
 1. `wget https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/song_plays_tutorial.json`  
 2. `vagrant box add song_plays_tutorial.json`
-3. `vagrant init bfemiano/song_plays_tutorial`
-4. add the below lines to VagrantFile on the line right below the config.vm.box config. 
+3. Choose a directory on your local machine to be your workspace location. Change to this directory and run `vagrant init bfemiano/song_plays_tutorial`
+4. Add the below lines to VagrantFile on the line right below the config.vm.box config. 
 ```
 config.ssh.username="student"
 config.ssh.password="password"
@@ -25,8 +25,8 @@ config.ssh.password="password"
 ### This can be useful if running over limited bandwidth. See instructor for a copy of the .box file. 
 
 1. `vagrant box add --name bfemiano/song_plays_tutorial /some/path/to/song_plays_tutorial.box`
-2. vagrant init bfemiano/song_plays_tutorial
-3. add the below lines to VagrantFile on the line right below the config.vm.box config. 
+2. Choose a directory on your local machine to be your workspace location. Change to this directory and run `vagrant init bfemiano/song_plays_tutorial`
+3. Add the below lines to VagrantFile on the line right below the config.vm.box config. 
 ```
 config.ssh.username="student"
 config.ssh.password="password"
@@ -37,7 +37,7 @@ config.ssh.password="password"
 
 
 ## File mount point.
-Data placed in the same directory as the Vagrantfile will appear on the Guest OS under the location `/vagrant`
+Files placed in the same directory as the Vagrantfile will appear on the Guest OS under the location `/vagrant`
 
 ## To ssh into vagrant box without vagrant ssh
 `ssh student@127.0.0.1 -p 2222`
