@@ -1,5 +1,5 @@
 
-description = 'song_plays'
+description = 'Spark job for dataset generation and analysis'
 version = "1.0.0"
 
 
