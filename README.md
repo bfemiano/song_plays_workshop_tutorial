@@ -1,6 +1,10 @@
 # song_plays_workshop_tutorial
 
-This is an advanced workshop for people already comfortable programming. Students will write 2 components. 
+This is an advanced workshop for people comfortable programming. We'll be writing code
+in both Python and Scala. You don't have to be an expert in either of those languages, but some
+familiarity, at least with Python, is recommended. 
+
+Students will write 2 components. 
 
 1.  A series of workflow management classes in Python using the Luigi framework. 
 2.  A Scala Spark job to join the datasets together and perform some basic group analysis.
