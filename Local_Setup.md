@@ -20,6 +20,10 @@ Use the [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/blob
     `sudo dpkg -i scala-2.11.8.deb` </br></br>
     Gradle: </br>
     `sudo apt install gradle` </br></br>
+
+    Note: In some environments Gradle 3.4 doesn't work well with the scala plugin. It's recommended you use the gradle wrapper to use a more updated version of gradle. 
+        Run `gradle wrapper --gradle-version=4.9` and then use the gradlew `./gradlew`. See [this stack overflow post](https://stackoverflow.com/questions/43039340/gradle-task-compilescala-fails-on-missing-value-for-zincclasspath) for more info. 
+
 2. If not already installed, get Python 2.7 and latest pip. </br>
     `sudo apt update` </br>
     `sudo apt upgrade` </br>
@@ -31,24 +35,23 @@ Use the [VM_Setup](https://github.com/bfemiano/song_plays_workshop_tutorial/blob
     `scala -version`</br>
     Expected output `Scala code runner version 2.11.8 -- Copyright 2002-2016, LAMP/EPFL` or similar 2.11 version.</br></br> 
     `gradle -version`</br>
-    Expected output: `Gradle 3.4.1` or similar 3.4 version.</br></br> 
+    Expected output: `Gradle 3.4.1` or similar 3.4 version. (Although, see note about using the gradle wrapper instead of relying on Gradle 3.4)</br></br> 
     `python —version`</br>
     Expected output: `Python 2.7.15rc1` or similar version. (2.7.12, 2.17.13, etc.)</br></br>
     `pip —version`</br>
     Expected output: `pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)` or similar version.</br> 
-    
     
 3. Install Luigi:</br>   
 `sudo pip install luigi` if using system-install of python. If using a local install like with pyenv don’t use sudo.</br>  
 Run `luigi`
 Expected output: `No task specified`
 
-3. Get and unpack Spark:</br> 
+4. Get and unpack Spark:</br> 
 `wget https://archive.apache.org/dist/spark/spark-2.2.1/spark-2.2.1-bin-hadoop2.7.tgz`</br> 
 `sudo tar -xzvf spark-2.2.1-bin-hadoop2.7.tgz --directory /opt/`</br> 
 `sudo mv /opt/spark-2.2.1-bin-hadoop2.7 /opt/spark-2.2.1`</br> 
 
-4. Setup bash profile for Spark:</br> 
+5. Setup bash profile for Spark:</br> 
 `vi ~/.bash_profile`</br> 
 Enter the below</br> 
 
