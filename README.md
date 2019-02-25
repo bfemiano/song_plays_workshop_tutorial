@@ -23,7 +23,7 @@ It should take students with assistance about 2 - 3 hours including VM setup tim
 
 1. First let's code the [Luigi Tasks](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Luigi_tasks.md).
 2. Then let's write the [Scala Spark Job](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Scala_Spark.md).
-3. Now let's run the Spark artifict you built with Luigi and [Put it all together](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Run_Directions.md).
+3. Now let's run the Spark artifict you built with Luigi and [Put it all together](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Putting_it_all_together.md).
 
 ## Fake data generation (Students can skip this)
 
