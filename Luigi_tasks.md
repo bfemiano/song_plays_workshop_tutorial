@@ -266,10 +266,10 @@ class DatasetGen(SparkSubmitTask):
 
     # Spark properties
     driver_memory = '1g'
-    executor_cores = 2
+    executor_cores = 1
     driver_cores = 1
     executor_memory = '2g'
-    num_executors = 2
+    num_executors = 1
     deploy_mode = 'client'
     spark_submit = 'spark-submit'
     master = 'local'
@@ -298,20 +298,22 @@ def requires(self):
 ```
 
 We also want to define any output targets we expect the Spark job to produce. For now we expect it to 
-produce two output directories, one for the dataset generation and another for the analysis
+produce two output directories, one for the dataset generation and another for the analysis. We also
+want to explicitly look for the presence of _SUCCESS files in those locations, since that is a signal
+Spark uses that it wrote all partition data to the location without fault. 
 
 ```python
 def output(self):
-    path = "data/output/{date:%Y/%m/%d/}"
-    data_path = os.path.join(path, 'dataset').format(date=self.date)
-    analysis_path = os.path.join(path, 'counts_by_zip_sub').format(date=self.date)
-    return {'dataset': luigi.LocalTarget(data_path),
-            'analysis': luigi.LocalTarget(analysis_path)}
+    path = "data/output/{date:%Y/%m/%d}"
+    data_success_path = os.path.join(path, 'dataset', '_SUCCESS').format(date=self.date)
+    analysis_success_path = os.path.join(path, 'counts_by_zip_sub', '_SUCCESS').format(date=self.date)
+    return {'dataset': luigi.LocalTarget(data_success_path),
+            'analysis': luigi.LocalTarget(analysis_success_path)}
 ```
 
 We don't need to implement the run() method in this case, because the parent class takes care of that
 for us. We do however need to override one important method that defines any app parameters we 
-want to pass to our Spark driver.
+want to pass to our Spark driver. 
 
 ```python
 def app_options(self):
@@ -319,15 +321,15 @@ def app_options(self):
     outs_dict = self.output()
     listeners_path = reqs_dict['listeners'].output()['data'].path
     spins_path = reqs_dict['spins'].output().path
-    dataset_out_path = outs_dict['dataset'].path
-    analysis_out_path = outs_dict['analysis'].path
+    data_success_path = outs_dict['dataset'].path
+    analysis_success_path = outs_dict['analysis'].path
     args = [
         "--day", "{date:%Y-%m-%d}".format(date=self.date),
         "--minrows", self.minrows,
         "--listeners_path", listeners_path,
         "--spins_path", spins_path,
-        "--dataset_out_path", dataset_out_path,
-        "--analysis_out_path", analysis_out_path,
+        "--dataset_out_path", os.path.dirname(data_success_path), # strip out _SUCCESS from tail of path.
+        "--analysis_out_path", os.path.dirname(analysis_success_path), # same. 
     ]
     return args
 ```
@@ -337,8 +339,8 @@ In our case we want to pass 6 different arguments to the Spark driver.
 2. The minimum number of expected rows to validate against.
 3. An input path to the listeners file we downloaded.
 4. An input path to the daily spins file we downloaded. 
-5. An output path to write the dataset produced by Spark. 
-6. An output path to write the analysis produced by Spark. 
+5. An output directory to write the dataset produced by Spark. 
+6. An output directory to write the analysis produced by Spark. 
 
 CHECKPOINT: Try running the below command: 
 

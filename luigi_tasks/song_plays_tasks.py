@@ -89,10 +89,10 @@ class DatasetGen(SparkSubmitTask):
 
     # Spark properties
     driver_memory = '1g'
-    executor_cores = 2
+    executor_cores = 1
     driver_cores = 1
     executor_memory = '2g'
-    num_executors = 2
+    num_executors = 1
     deploy_mode = 'client'
     spark_submit = 'spark-submit'
     master = 'local'
@@ -109,25 +109,25 @@ class DatasetGen(SparkSubmitTask):
         }
 
     def output(self):
-        path = "data/output/{date:%Y/%m/%d/}"
-        data_path = os.path.join(path, 'dataset').format(date=self.date)
-        analysis_path = os.path.join(path, 'counts_by_zip_sub').format(date=self.date)
-        return {'dataset': luigi.LocalTarget(data_path),
-                'analysis': luigi.LocalTarget(analysis_path)}
+        path = "data/output/{date:%Y/%m/%d}"
+        data_success_path = os.path.join(path, 'dataset', '_SUCCESS').format(date=self.date)
+        analysis_success_path = os.path.join(path, 'counts_by_zip_sub', '_SUCCESS').format(date=self.date)
+        return {'dataset': luigi.LocalTarget(data_success_path),
+                'analysis': luigi.LocalTarget(analysis_success_path)}
 
     def app_options(self):
         reqs_dict = self.requires()
         outs_dict = self.output()
         listeners_path = reqs_dict['listeners'].output()['data'].path
         spins_path = reqs_dict['spins'].output().path
-        dataset_out_path = outs_dict['dataset'].path
-        analysis_out_path = outs_dict['analysis'].path
+        data_success_path = outs_dict['dataset'].path
+        analysis_success_path = outs_dict['analysis'].path
         args = [
             "--day", "{date:%Y-%m-%d}".format(date=self.date),
             "--minrows", self.minrows,
             "--listeners_path", listeners_path,
             "--spins_path", spins_path,
-            "--dataset_out_path", dataset_out_path,
-            "--analysis_out_path", analysis_out_path,
+            "--dataset_out_path", os.path.dirname(data_success_path), # strip out _SUCCESS from path.
+            "--analysis_out_path", os.path.dirname(analysis_success_path), # same. 
         ]
         return args

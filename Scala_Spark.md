@@ -52,9 +52,11 @@ There are advantages to SBT over Gradle for Scala builds, but for this project w
 To copy the gradle wrapper launcher from the student home directory to the scala build workspace.  The gradle wrapper is a handy utility that let's you bundle a specific version
 of gradle on a per-application basis rather than have to rely on the system install (if any). We find this a very useful setup on our teams, especially in our CI environments. 
 
-`cd /vagrant/scala_spark`
-`cp -r ~/gradle .`
-`cp ~/gradlew  .`
+```bash
+cd /vagrant/scala_spark
+cp -r ~/gradle .
+cp ~/gradlew  .
+```
 
 ### Step 3. Create build.gradle and settings.gradle files.
 
@@ -111,7 +113,7 @@ dependencies {
 }
 ```
 
-This sets our application up with version 1.0.0.  We've configured gradle to use the java, scala, and shadow plugins. The buildScript() tag specifically let's use bootstrap the gradle shadow plugin location for use in constructing the fat jar. We also have to setup the `repositiories` tag so that gradle knows where to get the dependencies defined later.
+This sets our application up with version 1.0.0.  We've configured gradle to use the java, scala, and shadow plugins. The buildScript() tag specifically let's use bootstrap the gradle shadow plugin location for use in constructing the fat jar. We also have to setup the `repositories` task so that gradle knows where to get the dependencies defined below.
 
 For the shadowJar build option, we tell it to suffix the jar name with `jar-with-dependencies` to clearly denote the artifact is a fat jar. We also tell it to use zip base64 encoding for bytecode to save space. 
 
@@ -121,7 +123,7 @@ Our dependencies are also clearly listed. This will include everything we need f
 2. Spark core 2.2.0
 3. Spark sql 2.2.0
 4. A custom Scala opt for command line argument parsing which I'm fond of. It's easy to use. 
-5. scala test and junit for easy unit testing. 
+5. Scala test and Junit for easy unit testing. 
 
 We're not totally done this step. We also want to define `settings.gradle` for any custom property overrides or variables to use in the build. In our case
 we can set `rootProject.name = 'song_plays'` in order to override gradle's default behavior of creating a jar with the basedir name. In this case it will
@@ -139,7 +141,7 @@ Additional note: All the dependency jars for compile and testCompile are already
 
 ### Step 4. Create Scala launcher object. 
 
-Let's create the packages for both our launcher and tests
+Let's create the packages for both our launcher and tests.
 
 From the basedir scala_spark location, run `mkdir -p src/{main,test}/scala/com/song/plays`.
 
@@ -253,19 +255,19 @@ We will use this to remove song plays from our dataset that didn't play for more
 ```scala
 def filterOnSpinTime(spins: DataFrame) = {
     spins.filter(col("elapsed_seconds") > lit(30))
-  }
+}
 ```
 
 Let's also define the function that will group and count the spins dataframe by zipcode and subscription type. This is how we'll produce
 our per-zipcode per-subscription type analysis. 
 
 ```scala
-  def countSpinsBySub(deduped_df: DataFrame) = {
+def countSpinsBySub(deduped_df: DataFrame) = {
     deduped_df.groupBy("fake_zipcode", "subscription_type").
-      agg(count("*").as("spins")).
-      select("fake_zipcode", "subscription_type", "spins").
-      orderBy("fake_zipcode", "subscription_type")
-  }
+        agg(count("*").as("spins")).
+        select("fake_zipcode", "subscription_type", "spins").
+        orderBy("fake_zipcode", "subscription_type")
+}
 ```
 
 Finally for this step, let's write a validation function. It will take in 2 integers. One to signal a number of rows, and another to define what the threshold for a minimum number of acceptable rows is.
@@ -278,7 +280,7 @@ def validate(numRows: Long, minrows: Int) = {
         "Number of rows: %d < %d".format(numRows, minrows)
       throw new FailedValidationError(msg)
     }
-  }
+}
 ```
 
 This means that unless callers catch the FailedValidationError it could crash the application. This is actually the behavior we want should the validation fail. 
@@ -313,26 +315,26 @@ turnaround with just 1 dataframe partition during operations. In practice this i
 
 Then we create `val session` to start doing our operations.
 
-Underneath this line write:
+Underneath this line write the lines to create dataframes from our parquet files at the supplied input paths. 
 
-`val listenersDF = session.read.parquet(cfg.listeners_path)`
+```scala
+val listenersDF = session.read.parquet(cfg.listeners_path)
+val spinsDF = filterOnSpinTime(session.read.parquet(cfg.spins_path))
+```
 
-This creates a dataframe from our parquet file at the supplied input path. 
-
-Then write:
-
-`val spinsDF = filterOnSpinTime(session.read.parquet(cfg.spins_path))`
-
-This sets up a spins dataframe from the supplied input path, and immediately sends that dataframe into our elapsed_second filter function. The dataframe assigned to `spinsDF` contains
+This sets up a listeners and spins dataframe from input, and immediately sends that dataframe into our elapsed_second filter function. The dataframe assigned to `spinsDF` contains
 this filtered subset of spins. 
 
-Now let's join the listeners dataframe to the spins dataframe and run distinct() to remove any duplicates.  We could alternatively run distinct() on `spinsDF` and `listenersDF` seperately before joining, but this is less code and the Spark SQL optimizer will hopefully figure out the best way to arrive at this state anyways. No need to overthink this for now unless it becomes
-a noticable performance problem, which is a good way to think in general when working on data processing with distributed systems. 
+using the `read.parquet` option makes it really easy to define a dataframe directly from Parquet files, which contain the schema in embedded in file. 
+
+Now let's join the listeners dataframe to the spins dataframe and run `distinct()` to remove any duplicates.  
 
 ```scala
 val joinedDF = spinsDF.join(listenersDF, "fake_listener_id")
 val dedupedDF = joinedDF.distinct()
 ```
+
+We could alternatively run `distinct()` on `spinsDF` and `listenersDF` seperately before joining, but this is less code and the Spark SQL optimizer will hopefully figure out the best way to arrive at this state anyways. No need to overthink this for now unless it becomes a noticable performance problem. (This is a good way to think in general when working on data engineering over distributed systems). 
 
 Now let's do validation on the deduplicated joined dataframe.
 
@@ -345,10 +347,9 @@ validate(numRows, cfg.minrows)
 Note that since count() is considered an action command, this where Spark will start evaluating the previous commands before this and start executing to arrive at the count() state.  Having lots of dataframe count() calls through your application can slow things down, but in our case we have just a single call, and the usefulness far exceeds the small price 
 in execution overhead we have to pay. 
 
-Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is zero cleanup or deltion of any external state which we have to perform manually. In practice this is a very useful property, since we can configure this job to run automatically. It will either A) produce our desired output
-artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried by Luigi later automatically.
+Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior as it let's design this job to be fault-tolerant will still be automated. It will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. 
 
-Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the defining characteristics of Spark that has made it so useful for data analysis and transformation. 
+Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the defining characteristics of Spark that has made it so useful for data analysis and transformation. 
 
 CHECKPOINT: Let's run the build command again just to make sure we didn't mistype anything.
 
@@ -371,7 +372,7 @@ dedupedDF.repartition(1).write.
 
 This will take the dataset we just falied, condense it to 1 single gzipped TSV file with a header, and write the output to the path we sent into the application defined at `dataset_out_path`. The labels right now like to get a single file, even if it's many gigabytes in length and takes longer to produce. 
 
-We also want to define the unicode character for null to quote, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark which don't default to quoting, but it's a habit I've always just kept. Call me crazy.s
+We also want to define the unicode character for null to quote, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark which don't default to quoting, but it's a habit I've always just kept. Call me crazy.
 
 We also want to call our aggregate analysis function and output the resulting dataframe to a Gzipped TSV file with a header too.
 

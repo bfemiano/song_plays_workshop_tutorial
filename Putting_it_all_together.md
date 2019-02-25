@@ -16,6 +16,8 @@ CHECKPOINT: If you run `ls` in the working directory you should see at least the
 luigi_tasks  scala_spark  song_plays.jar
 ```
 
+Also, running `echo $PYTHONPATH` should still show just `luigi_tasks`.
+
 ### Step 2. Launch the Spark luigi task again. 
 
 Let's retry the Spark luigi task that failed from the early step. 
@@ -24,15 +26,14 @@ Let's retry the Spark luigi task that failed from the early step.
 
 You should see the Spark submit command print to the console and wait for a little while it runs.
 
-```
-spark-submit --master local --deploy-mode client --class com.song.plays.DatasetGen --driver-memory 1g --executor-memory 2g --driver-cores 1 --executor-cores 2 --num-executors 2 song_plays.jar --day 2019-02-08 --minrows 100 --listeners_path data/listeners/listeners.snappy.parquet --spins_path data/spins/2019/02/08/spins.snappy.parquet --dataset_out_path data/output/2019/02/08//dataset --analysis_out_path data/output/2019/02/08//counts_by_zip_sub
+```bash
+spark-submit --master local --deploy-mode client --class com.song.plays.DatasetGen --driver-memory 1g --executor-memory 2g --driver-cores 1 --executor-cores 1 --num-executors 1 song_plays.jar --day 2019-02-08 --minrows 100 --listeners_path data/listeners/listeners.snappy.parquet --spins_path data/spins/2019/02/08/spins.snappy.parquet --dataset_out_path data/output/2019/02/08/dataset --analysis_out_path data/output/2019/02/08/counts_by_zip_sub
 ```
 
-CHECKPOINT: By the time the process finishes you should see Luigi output `:)`. This means the expected output locations were produced successfully.
+CHECKPOINT: By the time the process finishes you should see Luigi output `:)`. This means Spark successfully created the output directories and wrote _SUCCESS files to them, which meants 
+all the partition output was successfully written. 
 
 Now in the last step we'll inspect the output files to see what they look like. 
-
-Note: If you want to see the validation failures in action, you can delete the contents under data/output and rerun the above command Luigi with `--minrows 10000000`. You'll see the Spark application throw an exception and Luigi show `:(`.
 
 
 ### Step 3. Take a look at the output you worked so hard to produce. 
@@ -62,7 +63,10 @@ fake_zipcode	subscription_type	spins
 12138	Premium	41
 14273	Ad-supported	40
 14303	Ad-supported	43
+....
 ```
+
+Note: If you want to see the validation code you wrote in action, you can delete the contents under `data/output` and rerun the above command Luigi with `--minrows 10000000`. You'll see the Spark application throw an exception and Luigi show `:(`.
 
 You have successfully completed this workshop!
 
