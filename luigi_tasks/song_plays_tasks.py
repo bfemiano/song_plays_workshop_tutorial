@@ -26,7 +26,7 @@ class ExternalFileChecker(luigi.ExternalTask):
 
 def make_local_dirs_if_not_exists(path):
     if not os.path.exists(os.path.dirname(path)):
-        os.makedirs(os.path.dirname(path))ce
+        os.makedirs(os.path.dirname(path))
 
 
 class DownloadSpins(luigi.Task):
