@@ -59,7 +59,7 @@ from urllib2 import urlopen, HTTPError
 class DownloadSpins(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://s3.amazonaws.com/storage-handler-docs/"
+    url = "https://www.dropbox.com/s/92b6hqk2npyle6f/"
     file_name = "spins-{date:%Y-%m-%d}.snappy.parquet"
 ```
 
@@ -182,7 +182,7 @@ Underneath the spins task let's start the listeners task.
 class DownloadListeners(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://s3.amazonaws.com/storage-handler-docs/listeners.snappy.parquet"
+    url = "https://www.dropbox.com/s/5c7e4696qhqx53t/listeners.snappy.parquet"
 
     def requires(self):
         return ExternalFileChecker(url=self.url)
