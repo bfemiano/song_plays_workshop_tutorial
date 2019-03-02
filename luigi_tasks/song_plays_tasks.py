@@ -32,7 +32,7 @@ def make_local_dirs_if_not_exists(path):
 class DownloadSpins(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://s3.amazonaws.com/storage-handler-docs/"
+    url = "https://www.dropbox.com/s/92b6hqk2npyle6f/"
     file_name = "spins-{date:%Y-%m-%d}.snappy.parquet"
 
     def output(self):
@@ -57,7 +57,7 @@ class DownloadSpins(luigi.Task):
 class DownloadListeners(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://s3.amazonaws.com/storage-handler-docs/listeners.snappy.parquet"
+    url = "https://www.dropbox.com/s/5c7e4696qhqx53t/listeners.snappy.parquet"
 
     def output(self):
         data_path = 'data/listeners/listeners.snappy.parquet'
