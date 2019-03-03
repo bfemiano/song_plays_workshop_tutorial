@@ -109,14 +109,6 @@ We send `--local-scheduler` since for this workshop we haven't setup a centraliz
 
 You should see Luigi output `:)` to indicate the task was successfully run. 
 
-We're missing something though...
-
-Try running it for a different day that doesn't have data in the remote Dropbox location. Let's try 2019-02-09
-
-`luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
-
-We get an error. 
-
 Before we're ready to move on, we need to add a dependency on a task that checks if the file is actually available in the remote location.
 
 Let's add the following method to our `DownloadSpins` task.
