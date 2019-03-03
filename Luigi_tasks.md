@@ -229,7 +229,7 @@ def run(self):
     marker_path = self.output()['marker'].path
     make_local_dirs_if_not_exists(data_path)
     make_local_dirs_if_not_exists(marker_path)
-    with open(data_path, 'w') as out_file:
+    with open(data_path, 'wb') as out_file:
         for data in urlopen(self.url).read():
             out_file.write(data)
     with open(marker_path, 'w') as out_file:
