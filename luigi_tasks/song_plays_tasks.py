@@ -33,7 +33,7 @@ class DownloadSpins(luigi.Task):
 
     date = luigi.DateParameter()
     url = "https://www.dropbox.com/s/92b6hqk2npyle6f/"
-    file_name = "spins-{date:%Y-%m-%d}.snappy.parquet"
+    file_name = "spins-{date:%Y-%m-%d}.snappy.parquet?dl=1"
 
     def output(self):
         path = 'data/spins/{date:%Y/%m/%d}/spins.snappy.parquet'
@@ -48,7 +48,7 @@ class DownloadSpins(luigi.Task):
         path = self.output().path
         make_local_dirs_if_not_exists(path)
         full_url = os.path.join(self.url, self.file_name.format(date=self.date))
-        with open(path, 'w') as out_file:
+        with open(path, 'wb') as out_file:
             for data in urlopen(full_url).read():
                 out_file.write(data)
 
@@ -57,7 +57,7 @@ class DownloadSpins(luigi.Task):
 class DownloadListeners(luigi.Task):
 
     date = luigi.DateParameter()
-    url = "https://www.dropbox.com/s/5c7e4696qhqx53t/listeners.snappy.parquet"
+    url = "https://www.dropbox.com/s/5c7e4696qhqx53t/listeners.snappy.parquet?dl=1"
 
     def output(self):
         data_path = 'data/listeners/listeners.snappy.parquet'
@@ -75,7 +75,7 @@ class DownloadListeners(luigi.Task):
         marker_path = self.output()['marker'].path
         make_local_dirs_if_not_exists(data_path)
         make_local_dirs_if_not_exists(marker_path)
-        with open(data_path, 'w') as out_file:
+        with open(data_path, 'wb') as out_file:
             for data in urlopen(self.url).read():
                 out_file.write(data)
         with open(marker_path, 'w') as out_file:
