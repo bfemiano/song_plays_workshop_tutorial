@@ -42,6 +42,9 @@ class DownloadSpins(luigi.Task):
 
     def get_full_url(self):
         full_url = os.path.join(self.url, self.file_name.format(date=self.date))
+        # hack to alter any other dates than 2019-02-08 to use an invalid dropbox URL.
+        # dropbox doesn't care about the file name suffix, only that the ID is valid. 
+        # For the purpose of this workshop I want to simulate only having 2019-02-08 data available. 
         full_url = full_url if "2019-02-08" in full_url else full_url.replace('92b6hqk2npyle6f', '1234')
         return full_url 
 

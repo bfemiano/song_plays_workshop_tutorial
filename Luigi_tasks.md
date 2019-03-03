@@ -87,6 +87,9 @@ def run(self):
             out_file.write(data)
 ```
 
+You'll notice the odd replace() call in the get_full_url() method. This is a workshop hack to alter any other dates than 2019-02-08 to use an invalid dropbox URL.
+Dropbox doesn't care about the file name suffix, only that the ID is valid. For the purpose of this workshop I want to simulate only having 2019-02-08 data available. 
+
 The output() method defines a single local target for where we expect the file to be after the download finishes. 
 The run() method implements the code to download the file from the url into the expected output location. 
 
