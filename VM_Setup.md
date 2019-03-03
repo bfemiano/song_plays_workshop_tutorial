@@ -23,7 +23,7 @@ config.ssh.password="password"
 
 
 ## File mount point.
-Files placed in the same directory as the Vagrantfile will appear on in the VM under the mount `/vagrant`
+Files placed in the same directory as the Vagrantfile will automatically appear in the VM under the mount `/vagrant`
 
 ## To ssh into vagrant box without vagrant ssh
 `ssh student@127.0.0.1 -p 2222`
