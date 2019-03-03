@@ -265,6 +265,8 @@ Now let's start the class implementation that will extend `SparkSubmitTask` to r
 We can use Luigi parameters to configure the different spark settings we want, such as the number of executors, memory per executor,
 executor cores, driver memory, etc.
 
+Let's add the following task to our `song_plays_tasks.py` file. 
+
 ```python
 
 class DatasetGen(SparkSubmitTask):
