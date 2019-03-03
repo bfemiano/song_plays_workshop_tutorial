@@ -179,7 +179,7 @@ CHECKPOINT: Try running `./gradlew clean build`. You should see `BUILD SUCCESSFU
 
 Now we're ready to start adding some useful code to the Spark launcher we just started.
 
-Directly under the `object DatasetGen` definition add a case class for Config. This lets the scopt library automatically create a container object our launcher parameter that we sent on the command-line.
+Directly inside the `object DatasetGen` definition add a case class for Config. This lets the scopt library automatically create a container object our launcher parameter that we sent on the command-line.
 
 Case classes are useful for definining immutable instances of classes for pattern matching. For more info see [Case Classes](https://docs.scala-lang.org/tour/case-classes.html)
 

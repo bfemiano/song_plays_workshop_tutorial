@@ -286,7 +286,7 @@ class DatasetGen(SparkSubmitTask):
     entry_class = 'com.song.plays.DatasetGen'
 ```
 
-date and minrows are custom parameters defined for just our subclass. Date will be passed to the Spark program. 
+`date` and `minrows` are custom parameters defined for just our subclass. Date will be passed to the Spark program. 
 
 Minrows will play an important role for validation and will also need to be passed to the Spark job. 
 
@@ -294,6 +294,8 @@ Note that the jar and class don't exist yet, but will once we finish the Scala s
 
 Next we have to define the dependencies this job has. We want to make sure before we launch the Spark job that the luigi
 tasks to download the spins and listeners for a given day are both complete.
+
+Add the below requires() to the `DatasetGen` task. 
 
 ```python
 def requires(self):
