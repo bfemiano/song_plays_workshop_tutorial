@@ -115,12 +115,6 @@ You should see Luigi output `:)` to indicate the task was successfully run.
 
 We're missing something though...
 
-Try running it for a different day that doesn't have data in the remote Dropbox location. Let's try 2019-02-09
-
-`luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
-
-We get an error. 
-
 Before we're ready to move on, we need to add a dependency on a task that checks if the file is actually available in the remote location.
 
 Let's add the following method to our `DownloadSpins` task.
@@ -170,7 +164,7 @@ world when we want to model dependencies outside our control, but not have the p
 throw errors if certain dependencies are not ready. In our example, we don't control
 the data availability at the remote location on Dropbox, so we model that as an external dependency. 
 
-CHECKPOINT: Now let's try the `DownloadSpins` task again for 2019-02-09.
+CHECKPOINT: Now let's try the `DownloadSpins` task again for a day that doesn't have a data file at the remote location. 2019-02-09.
 
 `luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
 
