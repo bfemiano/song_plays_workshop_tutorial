@@ -7,16 +7,18 @@ The goal of this spark application is to combine the listeners dimension with th
 1. A dataset where each spins has the relevant listener information joined by listener id. 
 2. An aggregate report of spins counted by zipcode and subscription type groups. For example "The number of times Ariana Grande 'Thank you, Next' played in zip code 90120 for ad-supported users was X."
 
+## What's this for again?
+
 The labels are often very interested in receiving these types of geo reports, and also receiving the raw spins dataset collections with some additional attributes spliced in.
 
-Some additional attributes joined in production, but not in this workshop. 
-    1. Listener information. We're working with just this in our workshop for simplicity sake. 
-    2. Album properties.
-    3. Composer information.
-    4. Track releases information.
-    5. Details about the Pandora radio station it played on (if applicable)
-    6. If a genre station, additional details.
-    7. If a played from a playlist, additional details about the playlist. 
+Some additional attributes joined in production, but not in this workshop:
+1. Listener information. We're working with just this in our workshop for simplicity sake. 
+2. Album properties.
+3. Composer information.
+4. Track releases information.
+5. Details about the Pandora radio station it played on (if applicable)
+6. If a genre station, additional details.
+7. If a played from a playlist, additional details about the playlist. 
 
 
 We want to build a scala application that can read:
@@ -32,25 +34,27 @@ We want to build a scala application that can read:
 
 ### Step 1. Create the build workspace. 
 
-Assuming working dir under /vagrant let's start to create the scala workspace.
+Assuming working dir under `/vagrant` let's start to create the scala workspace.
 
 Let's also assume we're going to name our scala basedir location `scala_spark`
 
-From any location run `mkdir -p /vagrant/scala_spark/src/{main,test}/{scala,resources}`
+Inside the VM run: `mkdir -p /vagrant/scala_spark/src/{main,test}/{scala,resources}`
 
 This will setup our project build and test structure. 
 
 ### Step 2.  Setup Gradle
 
-Let's copy the gradle wrapper into the project so can build a jar to submit to Spark very easily. 
+Let's use Gradle to build a jar to submit to Spark very easily. 
 
 SBT (Scala build tool) is a very popular scala build system, but for this small project it's unnecessarily complicated. Moreoever, many data engineering teams
 have Java for other applications and often find themselves using Gradle for those environments. It's nice to be have a consistent build system across Java and Scala applications. 
 
 There are advantages to SBT over Gradle for Scala builds, but for this project we can keep it really simple. 
 
-To copy the gradle wrapper launcher from the student home directory to the scala build workspace.  The gradle wrapper is a handy utility that let's you bundle a specific version
+Let's copy the gradle wrapper launcher from the student home directory to the scala build workspace.  The gradle wrapper is a handy utility that let's you bundle a specific version
 of gradle on a per-application basis rather than have to rely on the system install (if any). We find this a very useful setup on our teams, especially in our CI environments. 
+
+In the VM: 
 
 ```bash
 cd /vagrant/scala_spark
@@ -126,8 +130,7 @@ Our dependencies are also clearly listed. This will include everything we need f
 5. Scala test and Junit for easy unit testing. 
 
 We're not totally done this step. We also want to define `settings.gradle` for any custom property overrides or variables to use in the build. In our case
-we can set `rootProject.name = 'song_plays'` in order to override gradle's default behavior of creating a jar with the basedir name. In this case it will
-create song-plays.jar instead of scala-spark.jar. 
+we can set `rootProject.name = 'song_plays'` in order to override gradle's default behavior of creating a jar with the basedir name.
 
 In the same location as the `build.gradle` file, create the file `settings.gradle` and add the single line
 
@@ -137,13 +140,13 @@ CHECKPOINT: From the scala_spark basedir location with your build script, run `.
 
 It can take a minute or so to initialize the build for the first time, but you should eventually see `BUILD SUCCESSFUL`
 
-Additional note: All the dependency jars for compile and testCompile are already precached in the VM, which is why you don't see any downloads happening. 
+Additional note: All the dependency jars for compile and testCompile are already pre-cached in the VM, which is why you don't see any downloads happening. 
 
 ### Step 4. Create Scala launcher object. 
 
 Let's create the packages for both our launcher and tests.
 
-From the basedir scala_spark location, run `mkdir -p src/{main,test}/scala/com/song/plays`.
+From the basedir scala_spark location in the VM, run `mkdir -p src/{main,test}/scala/com/song/plays`.
 
 For now we will just focus on the src/main object and not the tests, but this command will set us up for later. 
 
@@ -176,7 +179,7 @@ CHECKPOINT: Try running `./gradlew clean build`. You should see `BUILD SUCCESSFU
 
 Now we're ready to start adding some useful code to the Spark launcher we just started.
 
-Directly under the `object Dataset` definition add a case class for Config. This let the scopt library automatically create a container object our launcher parameter that we sent on the command-line.
+Directly under the `object DatasetGen` definition add a case class for Config. This lets the scopt library automatically create a container object our launcher parameter that we sent on the command-line.
 
 Case classes are useful for definining immutable instances of classes for pattern matching. For more info see [Case Classes](https://docs.scala-lang.org/tour/case-classes.html)
 
@@ -233,7 +236,7 @@ We also have to define a parsing method `getParser()` that takes in the array of
 
 Here's a quick step-by-step summary of what's going on here. 
 
-1. Create an instance of OptionParser with our case class as the type argument. 
+1. Create an instance of `OptionParser` with our case class as the type argument. 
 2. Then we can define options for how we want to assign the different CLI parameter arguments to variables. There's also a text() field to give a message on what the different arguments mean should the --help option be triggered, or an error occur. 
 3. Then call parser.parse() with the arguments string array that initially came from the caller. 
 4. The object assigned to `val cfg` will be either the config we parsed, if valid, or for some reason the parser returned None, then we send back an empty config along with an error message. We use pattern matching here to make sure this function never returns null or None.  
@@ -248,7 +251,7 @@ run: `./gradlew clean build` should still produce `BUILD SUCCESSFUL`
 Before we get to the actual main() function where we'll initialize a Spark session, let's write a few functions that will help
 during the analysis and transformation. You'll see how these all tie together as we continue to work through the workshop. 
 
-First, let's write a function that takes as a parameter a Spark dataframe and filters all rows containing an integer < 30 for the expected column 'elapsed_seconds'. 
+First, let's write a function that takes as a parameter a Spark dataframe and keeps all rows that have > 30 for the expected column 'elapsed_seconds'. 
 
 We will use this to remove song plays from our dataset that didn't play for more than 30 seconds. The labels tend not to be interested in these. 
 
@@ -270,7 +273,7 @@ def countSpinsBySub(deduped_df: DataFrame) = {
 }
 ```
 
-Finally for this step, let's write a validation function. It will take in 2 integers. One to signal a number of rows, and another to define what the threshold for a minimum number of acceptable rows is.
+Finally for this step, let's write a validation function. It will take in 2 integers. One for the number of rows, and another to define what the threshold for a minimum number of acceptable rows should be.
 If the number of rows is less than the threshold, we throw an exception. Otherwise exit normally and don't return anything.
 
 ```scala
@@ -285,6 +288,8 @@ def validate(numRows: Long, minrows: Int) = {
 
 This means that unless callers catch the FailedValidationError it could crash the application. This is actually the behavior we want should the validation fail. 
 More on this below when you see how we're using this function.
+
+When we get to testing later you'll see why it was a good idea to move the above business logic into their own dedicated functions. 
 
 CHECKPOINT: Run `./gradlew clean build` and the output should still be `BUILD SUCCESSFUL`. 
 
@@ -311,9 +316,9 @@ def main(args: Array[String]): Unit = {
 
 This will take the String arguments fed at runtime by Spark-submit into the main class and create a Config instance from them with typed values.  We then setup a Spark session instance
 with a single config override fo shuffle.partitions. This is set to 1 because for the purposes of this workshop the datasets are very small, and so we can actually get better performance
-turnaround with just 1 dataframe partition during operations. In practice this is often left alone for Spark to optimize at runtime, but you do occassionally see applications set this manually.
+turnaround with just 1 dataframe partition during operations. In practice this is often best left alone for Spark to optimize at runtime, but you do occassionally see applications set this manually.
 
-Then we create `val session` to start doing our operations.
+Once we have a reference to the `session` variable we can start doing our operations. 
 
 Underneath this line write the lines to create dataframes from our parquet files at the supplied input paths. 
 
@@ -322,10 +327,9 @@ val listenersDF = session.read.parquet(cfg.listeners_path)
 val spinsDF = filterOnSpinTime(session.read.parquet(cfg.spins_path))
 ```
 
-This sets up a listeners and spins dataframe from input, and immediately sends that dataframe into our elapsed_second filter function. The dataframe assigned to `spinsDF` contains
-this filtered subset of spins. 
+This sets up the listeners and spins dataframes from input, and immediately sends the spins dataframe into our elapsed_second filter function. The dataframe assigned to `spinsDF` contains this filtered subset of spins. 
 
-using the `read.parquet` option makes it really easy to define a dataframe directly from Parquet files, which contain the schema in embedded in file. 
+Using the `read.parquet` option makes it really easy to define a dataframe directly from Parquet files, since Parquet files contain an embedded schema. 
 
 Now let's join the listeners dataframe to the spins dataframe and run `distinct()` to remove any duplicates.  
 
@@ -347,9 +351,9 @@ validate(numRows, cfg.minrows)
 Note that since count() is considered an action command, this where Spark will start evaluating the previous commands before this and start executing to arrive at the count() state.  Having lots of dataframe count() calls through your application can slow things down, but in our case we have just a single call, and the usefulness far exceeds the small price 
 in execution overhead we have to pay. 
 
-Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior as it let's design this job to be fault-tolerant will still be automated. It will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. 
+Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior, since it let's us design this job to be fault-tolerant while still be automated. Each run of the job will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. Repeated and consistent Luigi errors tend to get data-engineering teams' attention very quickly. 
 
-Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the defining characteristics of Spark that has made it so useful for data analysis and transformation. 
+Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the signature characteristics of Spark that has made it so useful for data analysis and transformation. 
 
 CHECKPOINT: Let's run the build command again just to make sure we didn't mistype anything.
 
@@ -370,7 +374,7 @@ dedupedDF.repartition(1).write.
       csv(cfg.dataset_out_path)
 ```
 
-This will take the dataset we just falied, condense it to 1 single gzipped TSV file with a header, and write the output to the path we sent into the application defined at `dataset_out_path`. The labels right now like to get a single file, even if it's many gigabytes in length and takes longer to produce. 
+This will take the dataset we just falied, condense it to 1 single gzipped TSV file with a header, and write the output to the path we sent into the application defined at `dataset_out_path`. The music label companies we transfer these files to like to get a single file, even if it's many gigabytes in length and takes longer to produce. 
 
 We also want to define the unicode character for null to quote, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark which don't default to quoting, but it's a habit I've always just kept. Call me crazy.
 
@@ -389,6 +393,8 @@ spinsPerZipSubDF.repartition(1).write.
 
 Note: Make sure you don't forget to add back the `}` char to close the main method.
 
+Another important aside: For this workshop I didn't include any logging commands, but in practice they are of course very handy to have inside your Spark jobs for debugging and/or shipping off to services like Logstash. 
+
 CHECKPOINT: Let's run the build command again just to make sure we didn't mistype anything.
 
 Run `./gradlew clean build` and  you should still see `BUILD SUCCESSFUL`
@@ -397,13 +403,13 @@ Now we're ready to write some tests.
 
 ### Step 9. Tests.
 
-Before we actually build the Spark jar and launch it from luigi, we want to be sure some of the more complex parts of our Spark application are functioning correctly.
+Before we actually build the Spark jar and launch it from luigi, we want to be sure the key parts of our Spark business logic are functioning correctly.
 
-Specifically, we want to test our validation function, the elapsed second filtering, and the aggregation logic. 
+Specifically, we want to test our validation function, the elapsed second filtering and the aggregation logic. 
 
-This step will show off another really useful property of Spark. You can test the code without needing any Mocks. 
+This step will show off another really useful property of Spark. You can test the code without needing any Mocks for Spark itself. 
 
-Create the file `src/test/scala/com/song/plays/DatasetGenTest.scala`
+Under the location `src/test/scala/com/song/plays/`, create the file `DatasetGenTest.scala`
 
 Define the imports
 
@@ -464,6 +470,8 @@ With this we're able to call `countSpinsBySub()` and see if the behavior is as e
 Calling `collect()` brings the RDD output back into the driver, and then calling `row.getAs` with positions let's use reconstruct the output into tuples that are easier to compare
 in assert. For our test case we expect the input to be counted as "2 spins for 90210 Family, and 1 for 90210 Ad supported". 
 
+Now you can start to see why we put the `countSpinsBySub` logic into it's own dedicated function. It makes testing with a dummy dataframe much easier than if everything is bunched together in one giant main() method. 
+
 Let's add a test for the elapsed_seconds filter also. 
 
 
@@ -519,9 +527,9 @@ test("validate passes") {
 } // end of test suite class.
 ```
 
-the test `validate passes` calls validate and fails with a specific message if the FailedValidationError was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is throw and caught with the wildcare `_`.
+the test `validate passes` calls validate and fails with a specific message if a `FailedValidationError` was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is throw and caught with the wildcare `_`.
 
-the test `validate fails` calls validate and is expected to fail. The only way it passes is if a FailedValidationError is thrown from the function. If either and urecognized function is returned or the validate() function returns normally, the test should fail. 
+the test `validate fails` calls validate and is expected to fail. The only way it passes is if a `FailedValidationError` is thrown from the function. If either and urecognized function is returned or the validate() function returns normally, the test should fail. 
 
 CHECKPOINT: Let's make sure our tests pass. 
 
@@ -530,6 +538,8 @@ Run `./gradlew clean test` and it should show our 4 tests succeeded and the buil
 ### Step 10. Build the fat jar. 
 
 Now that the tests pass and our program does what we expect, let's produce the jar we intend to launch from our luigi workflow.
+
+A fat jar will contain all of the classpath runtime dependencies our application will need in the JVM. It's normal for this to be quite large.
 
 Run `./gradlew clean test shadowJar`. 
 

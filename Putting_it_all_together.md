@@ -4,6 +4,8 @@ We're ready now to use the Scala spark application to process our downloaded dat
 
 ### Step 1. Bring the jar you just built into a top-level ocation. 
 
+In the VM run:
+
 `cd /vagrant`.
 
 Move the fat jar into the /vagrant working directory.
