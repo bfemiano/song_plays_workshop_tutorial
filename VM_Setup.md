@@ -8,7 +8,7 @@ Make sure you you have Vagrant 2.2.2+ and VirtualBox 6.0+ installed.
 
 ## Install the VM from the .box file. 
 
-1. Paste the following link into your browser: https://drive.google.com/uc?export=download&confirm=B1GP&id=1cvjqGJxUzDP_puZHd5E3gSeEYnnv44kE
+1. Copy and paste the following link into your browser: https://drive.google.com/uc?export=download&confirm=B1GP&id=1cvjqGJxUzDP_puZHd5E3gSeEYnnv44kE
 2. Click "Download anyway" on the file prompt. The box file doesn't contain any malware. 
 3. `vagrant box add --name bfemiano/song_plays_tutorial /some/path/to/song_plays_tutorial.box`
 4. Choose a directory on your local machine to be your workspace location. Change to this directory and run `vagrant init bfemiano/song_plays_tutorial`

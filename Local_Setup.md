@@ -3,8 +3,7 @@ This will help you install all the workshop dependencies on your local workstati
 
 ## For MacOSX 
 For MacOSX, many of these should already exist. You'll probably only have to install Scala, Gradle and Luigi manually. 
-Consider 
-Once you have everything installed, run the verify commands below to double check. 
+Consider cnce you have everything installed, run the verify commands from the Linux section below to double-check. 
 
 ## For Windows
 
