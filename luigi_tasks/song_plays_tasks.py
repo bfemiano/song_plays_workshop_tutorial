@@ -40,16 +40,19 @@ class DownloadSpins(luigi.Task):
         path = path.format(date=self.date)
         return luigi.LocalTarget(path)
 
-    def requires(self):
+    def get_full_url(self):
         full_url = os.path.join(self.url, self.file_name.format(date=self.date))
-        return ExternalFileChecker(url=full_url)
+        full_url = full_url if "2019-02-08" in full_url else full_url.replace('92b6hqk2npyle6f', '1234')
+        return full_url 
+
+    def requires(self):
+        return ExternalFileChecker(url=self.get_full_url())
 
     def run(self):
         path = self.output().path
         make_local_dirs_if_not_exists(path)
-        full_url = os.path.join(self.url, self.file_name.format(date=self.date))
         with open(path, 'wb') as out_file:
-            for data in urlopen(full_url).read():
+            for data in urlopen(self.get_full_url()).read():
                 out_file.write(data)
 
 

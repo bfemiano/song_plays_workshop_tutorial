@@ -74,12 +74,16 @@ def output(self):
     path = path.format(date=self.date)
     return luigi.LocalTarget(path)
 
+def get_full_url(self):
+    full_url = os.path.join(self.url, self.file_name.format(date=self.date))
+    full_url = full_url if "2019-02-08" in full_url else full_url.replace('92b6hqk2npyle6f', '1234')
+    return full_url 
+
 def run(self):
     path = self.output().path
     make_local_dirs_if_not_exists(path)
-    full_url = os.path.join(self.url, self.file_name.format(date=self.date))
     with open(path, 'wb') as out_file:
-        for data in urlopen(full_url).read():
+        for data in urlopen(self.get_full_url()).read():
             out_file.write(data)
 ```
 
@@ -109,14 +113,22 @@ We send `--local-scheduler` since for this workshop we haven't setup a centraliz
 
 You should see Luigi output `:)` to indicate the task was successfully run. 
 
+We're missing something though...
+
+Try running it for a different day that doesn't have data in the remote Dropbox location. Let's try 2019-02-09
+
+`luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
+
+We get an error. 
+
 Before we're ready to move on, we need to add a dependency on a task that checks if the file is actually available in the remote location.
 
 Let's add the following method to our `DownloadSpins` task.
 
 ```python
 def requires(self):
-    full_url = os.path.join(self.url, self.file_name.format(date=self.date))
-    return ExternalFileChecker(url=full_url)
+    return ExternalFileChecker(url=self.get_full_url())
+
 ```
 
 This tells our `DownloadSpins` task not to run if the `ExternalFileChecker` instance for the URL isn't complete.
@@ -157,6 +169,15 @@ anything if the task isn't initially satisfied. This comes in extremely handy in
 world when we want to model dependencies outside our control, but not have the pipeline
 throw errors if certain dependencies are not ready. In our example, we don't control
 the data availability at the remote location on Dropbox, so we model that as an external dependency. 
+
+CHECKPOINT: Now let's try the `DownloadSpins` task again for 2019-02-09.
+
+`luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
+
+You should see the Luigi `:|` output. This means the scheduler was unable to run
+one or more tasks because of an external dependency not being satisfied. In our case,
+there is no spins datafile for 2019-02-09. For the rest of the workshop we'll stick
+with the date we know has data: 2019-02-08.
 
 Additional notes: If you browse under `/vagrant/data/` you should see the file in the directory tree 
 for `data/spins/2019/02/08/spins.snappy.parquet`. This is an effective
