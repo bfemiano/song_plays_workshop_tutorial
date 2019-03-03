@@ -72,3 +72,4 @@ Note: If you want to see the validation code you wrote in action, you can delete
 
 You have successfully completed this workshop!
 
+Make sure you exit out of the VM SSH session and run `vagrant halt` to turn off the VirtualBox VM.  
