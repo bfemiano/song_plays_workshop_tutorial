@@ -158,15 +158,6 @@ world when we want to model dependencies outside our control, but not have the p
 throw errors if certain dependencies are not ready. In our example, we don't control
 the data availability at the remote location on Dropbox, so we model that as an external dependency. 
 
-CHECKPOINT: Now let's try the `DownloadSpins` task again for 2019-02-09.
-
-`luigi --module song_plays_tasks DownloadSpins --date 2019-02-09 --local-scheduler`
-
-You should see the Luigi `:|` output. This means the scheduler was unable to run
-one or more tasks because of an external dependency not being satisfied. In our case,
-there is no spins datafile for 2019-02-09. For the rest of the workshop we'll stick
-with the date we know has data: 2019-02-08.
-
 Additional notes: If you browse under `/vagrant/data/` you should see the file in the directory tree 
 for `data/spins/2019/02/08/spins.snappy.parquet`. This is an effective
 data Hadoop HDFS and S3 partitioning indexing strategy for laying out large collections of data we receive as somewhat predictable batch updates, usually on a daily or hourly basis. 
