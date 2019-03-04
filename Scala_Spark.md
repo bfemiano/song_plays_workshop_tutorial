@@ -4,12 +4,12 @@ It's recommended you have finished the last checkpoint from Luigi Tasks before s
 
 The goal of this spark application is to combine the listeners dimension with the daily spins data and produce 2 output artifacts.
 
-1. A dataset where each spins has the relevant listener information joined by listener id. 
-2. An aggregate report of spins counted by zipcode and subscription type groups. For example "The number of times Ariana Grande 'Thank you, Next' played in zip code 90120 for ad-supported users was X."
+1. A dataset where each spin has the relevant listener information joined by listener id. 
+2. An count of spins grouped by zipcode and subscription type. For example "The number of times Ariana Grande 'Thank you, Next' played in zip code 90120 for ad-supported users was X."
 
 ## What's this for again?
 
-The labels are often very interested in receiving these types of geo reports, and also receiving the raw spins dataset collections with some additional attributes spliced in.
+The labels are very interested in receiving these types of geo reports, and also receiving the raw spins dataset collections with some additional attributes spliced in.
 
 Some additional attributes joined in production, but not in this workshop:
 1. Listener information. We're working with just this in our workshop for simplicity sake. 
@@ -179,7 +179,7 @@ CHECKPOINT: Try running `./gradlew clean build`. You should see `BUILD SUCCESSFU
 
 Now we're ready to start adding some useful code to the Spark launcher we just started.
 
-Directly inside the `object DatasetGen` definition add a case class for Config. This lets the scopt library automatically create a container object our launcher parameter that we sent on the command-line.
+Directly inside the `object DatasetGen` definition add a case class for Config. This lets the scopt library automatically create a container object with our launcher parameter that we sent on the command-line from Luigi.
 
 Case classes are useful for definining immutable instances of classes for pattern matching. For more info see [Case Classes](https://docs.scala-lang.org/tour/case-classes.html)
 
@@ -193,6 +193,8 @@ case class Config(day: String = "",
 ```
 
 We also have to define a parsing method `getParser()` that takes in the array of String arguments from main to construct instances of this Config. Don't worry too much about understanding the details of everything going on in this snippet. I'll try to explain right after you're done entering these lines. 
+
+Enter the following code below the case class definition:
 
 ```scala
 /** Parse command line arguments for what's expected.
@@ -237,7 +239,7 @@ We also have to define a parsing method `getParser()` that takes in the array of
 Here's a quick step-by-step summary of what's going on here. 
 
 1. Create an instance of `OptionParser` with our case class as the type argument. 
-2. Then we can define options for how we want to assign the different CLI parameter arguments to variables. There's also a text() field to give a message on what the different arguments mean should the --help option be triggered, or an error occur. 
+2. Then we can define options for how we want to assign the different CLI parameter arguments to variables. There's also a text() field to give a message on what the different arguments mean, should the --help option be triggered, or an error occur. 
 3. Then call parser.parse() with the arguments string array that initially came from the caller. 
 4. The object assigned to `val cfg` will be either the config we parsed, if valid, or for some reason the parser returned None, then we send back an empty config along with an error message. We use pattern matching here to make sure this function never returns null or None.  
 5. Either way the last line in the `getParser()` returns a cfg instance back to the caller. 
@@ -315,8 +317,8 @@ def main(args: Array[String]): Unit = {
 ```
 
 This will take the String arguments fed at runtime by Spark-submit into the main class and create a Config instance from them with typed values.  We then setup a Spark session instance
-with a single config override fo shuffle.partitions. This is set to 1 because for the purposes of this workshop the datasets are very small, and so we can actually get better performance
-turnaround with just 1 dataframe partition during operations. In practice this is often best left alone for Spark to optimize at runtime, but you do occassionally see applications set this manually.
+with a single config override for shuffle.partitions. This is set to 1 because for the purposes of this workshop the datasets are very small, and so we can actually get better performance
+with just 1 dataframe partition during operations. In practice this is often best left alone for Spark to optimize at runtime, but you do occassionally see applications set this manually.
 
 Once we have a reference to the `session` variable we can start doing our operations. 
 
@@ -351,7 +353,7 @@ validate(numRows, cfg.minrows)
 Note that since count() is considered an action command, this where Spark will start evaluating the previous commands before this and start executing to arrive at the count() state.  Having lots of dataframe count() calls through your application can slow things down, but in our case we have just a single call, and the usefulness far exceeds the small price 
 in execution overhead we have to pay. 
 
-Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior, since it let's us design this job to be fault-tolerant while still be automated. Each run of the job will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. Repeated and consistent Luigi errors tend to get data-engineering teams' attention very quickly. 
+Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior, since it let's us design this job to be fault-tolerant and automated. Each run of the job will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. Repeated and consistent Luigi errors tend to get data-engineering teams' attention very quickly. 
 
 Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the signature characteristics of Spark that has made it so useful for data analysis and transformation. 
 
@@ -376,7 +378,7 @@ dedupedDF.repartition(1).write.
 
 This will take the dataset we just falied, condense it to 1 single gzipped TSV file with a header, and write the output to the path we sent into the application defined at `dataset_out_path`. The music label companies we transfer these files to like to get a single file, even if it's many gigabytes in length and takes longer to produce. 
 
-We also want to define the unicode character for null to quote, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark which don't default to quoting, but it's a habit I've always just kept. Call me crazy.
+We also want to define the unicode character `null` as the only quotable character, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark, but it's a habit I've always just kept. Call me crazy.
 
 We also want to call our aggregate analysis function and output the resulting dataframe to a Gzipped TSV file with a header too.
 
@@ -463,7 +465,7 @@ We can create a local spark session with just `master("local")` on the builder. 
 
 We can use the `parallelize` function on the context object to take a local List() of tuples and create an RDD. 
 
-Then we can manually create a dataframe using Row.fromTuple() and supplying a schema that defines the name and type for each column as they appear in the tuple order. 
+Then we can manually create a dataframe using `Row.fromTuple()` and supplying a schema that defines the name and type for each column as they appear in the tuple order. 
 
 With this we're able to call `countSpinsBySub()` and see if the behavior is as expected over a real Spark dataframe. 
 
@@ -527,9 +529,9 @@ test("validate passes") {
 } // end of test suite class.
 ```
 
-the test `validate passes` calls validate and fails with a specific message if a `FailedValidationError` was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is throw and caught with the wildcare `_`.
+The test `validate passes` calls validate and fails with a specific message if a `FailedValidationError` was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is throw and caught with the wildcard `_`.
 
-the test `validate fails` calls validate and is expected to fail. The only way it passes is if a `FailedValidationError` is thrown from the function. If either and urecognized function is returned or the validate() function returns normally, the test should fail. 
+The test `validate fails` calls validate and is expected to fail. The only way it passes is if a `FailedValidationError` is thrown from the function. If either and urecognized error is thrown or the validate() function returns normally, then the test should fail. 
 
 CHECKPOINT: Let's make sure our tests pass. 
 

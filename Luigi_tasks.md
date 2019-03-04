@@ -63,10 +63,10 @@ class DownloadSpins(luigi.Task):
     file_name = "spins-{date:%Y-%m-%d}.snappy.parquet?dl=1"
 ```
 The url is a constant fixed to the static location on dropbox where these files reside. 
-the file_name value you'll notice has a formatted `date` area. This will be used later. 
+The file_name value you'll notice has a formatted `date` area. This will be used later. 
 
 Just below this line in the same class let's implement a few methods. 
-Note: Make sure these are scoped inside the class you defined above. This will require indenting them. 
+Make sure these are scoped inside the class you defined above. This will require indenting them. 
 
 ```python
 def output(self):
@@ -178,7 +178,7 @@ with the date we know has data: 2019-02-08.
 
 Additional notes: If you browse under `/vagrant/data/` you should see the file in the directory tree 
 for `data/spins/2019/02/08/spins.snappy.parquet`. This is an effective
-data Hadoop HDFS and S3 partitioning indexing strategy for laying out large collections of data we receive as somewhat predictable batch updates, usually on a daily or hourly basis. 
+data partitioning strategy in Hadoop HDFS and S3 for laying out large collections of data we receive as somewhat predictable batch updates, usually on a daily or hourly basis. 
 You can very easily send globbed file-paths to programs for let's say an entire month using for example `--input data/spins/2019/02/*`. In that example, we would send all the spins data for Feb 2019 to some program. 
 
 The file was written as snappy-compressed Parquet. I used snappy because it achieves a relatively good compression ratio without much CPU intensity. I used Parquet because it provides a very efficient means of storing columnar data for various queries involving sparse projections over the data. 
@@ -199,12 +199,12 @@ class DownloadListeners(luigi.Task):
 
 The listeners dimension keeps track of all Pandora listeners that could potentially generate song spin events. We're interested in reporting to the music labels which listener IDs were responsible for those song spins. 
 
-You'll notice right away that although this task also takes in a date parameter, it doesn't use it for
+You'll notice right away that although this task also takes in a date parameter, it doesn't use it to
 format the url we check against. We will instead use the date parameter to keep a marker file at a subdirectory location that matches the date. If the marker exists, that means we already successfully downloaded the listeners file on the given date. 
 
-This was setup is designed to illustrate a slightly different data access pattern that comes up
-a lot in the real world. That being a static lookup file that doesn't change in name as it's updated. Often you see this with smaller append-only datasets that get updated periodically and reposted to shared locations. Teams go through quite a bit of trouble to manage this pattern, often keeping track of file modification times or comparing byte counts to see if something has changed. For our
-case though we can use a simple pattern. Let's log a marker file for every day we've successfully downloaded the file. This will keep our task from redownloading the listeners file
+This setup was designed to illustrate a slightly different data access pattern that comes up
+a lot in the real world; A static lookup file that doesn't change in name as it's updated. Often you see this with smaller append-only datasets that get updated periodically and reposted to shared locations. Teams go through quite a bit of trouble to manage this pattern, often keeping track of file modification times or comparing byte counts to see if something has changed. For our
+case though we can use a simple pattern. Let's log a marker file for every day we've successfully downloaded the file. This will keep our task from re-downloading the listeners file
 on a day that it has already retrieved the latest file. This pattern works well for dimensions where we can use the newest version of the file to reprocess older days. 
 
 Let's add the code to create the marker file at the right subdirectory for the date parameter:
@@ -222,7 +222,7 @@ In this case we want to make sure the task both produced a valid file and that a
 we have 2 output targets from this task. 
 
 Notice you'll see how in this output() we return a dictionary, whereas the download spin task returned just a single object. Luigi can handle most
-different types of return types that come from output(), including lists, tuples, dictionaries, objects and even generators. 
+different types of return types that come from output() and requires(), including lists, tuples, dictionaries, objects and even generators. 
 
 Using dictionaries let's use label the target references for ease of use in our run method, which we'll add next:
 
@@ -239,9 +239,9 @@ def run(self):
         pass
 ```
 
-Note: It's very common in cases where tasks have two or more output targets to use the run method to and remove any targets that might already exist. I purposefully omitted this design pattern from the workshop, because I don't want students to have to write removal code that could go wrong and remove too much.
+Note: It's very common in cases where tasks have two or more output targets to use the run method to remove any targets that might already exist. I purposefully omitted this design pattern from the workshop, because I don't want students to have to write removal code that could go wrong and remove too much.
 
-You might be thinking "how can the task be running if a target already exists and would need to be cleaned up?". Remember, Luigi will run the task if even one output target it expects isn't available, but often times in that scenario running the task when other output targets are already complete can cause side-effects. It's best to just start with a clean slate of output targets before each run. 
+You might be thinking "how can the task be running if a target already exists and would need to be cleaned up?". Remember, Luigi will run the task if even one output target it expects isn't available. However often times in that scenario running the task when other output targets are already complete can cause side-effects. It's best to just start with a clean slate of output targets before each run. 
 
 All this run method does is download the data at the supplied url parameter (which is constant) and then create the daily marker file in the right subdirectory location under `/vagrant/data`
 
@@ -261,7 +261,7 @@ At the top of the module in the imports section, add the below import.
 
 `from luigi.contrib.spark import SparkSubmitTask`
 
-This is a handy Luigi task that handles formatting the `spark-submit` command with the right config options. 
+This is a handy Luigi task that handles formatting and invoking the `spark-submit` system command with the right config options. 
 
 Now let's start the class implementation that will extend `SparkSubmitTask` to run our specific Spark task. 
 
@@ -295,7 +295,7 @@ Minrows will play an important role for validation and will also need to be pass
 
 Note that the jar and class don't exist yet, but will once we finish the Scala spark work in the next step. 
 
-Next we have to define the dependencies this job has. We want to make sure before we launch the Spark job that the luigi
+Next we have to define the dependent tasks. We want to make sure before we launch the Spark job that the luigi
 tasks to download the spins and listeners for a given day are both complete.
 
 Add the below requires() to the `DatasetGen` task. 
