@@ -8,7 +8,7 @@ In the VM run:
 
 `cd /vagrant`.
 
-Move the fat jar into the /vagrant working directory.
+Move the fat jar into the /vagrant working directory. Let's give it a shorter name too. 
 
 `mv scala_spark/build/libs/song_plays-1.0.0-jar-with-dependencies.jar  song_plays.jar`
 
@@ -68,7 +68,7 @@ fake_zipcode	subscription_type	spins
 ....
 ```
 
-Note: If you want to see the validation code you wrote in action, you can delete the contents under `data/output` and rerun the above command Luigi with `--minrows 10000000`. You'll see the Spark application throw an exception and Luigi show `:(`.
+Note: If you want to see the validation code you wrote in action, you can delete the contents under `data/output` and rerun the above luigi command with an additional parameter: `--minrows 10000000`. You'll see the Spark application throw an exception and Luigi show `:(`.
 
 You have successfully completed this workshop!
 

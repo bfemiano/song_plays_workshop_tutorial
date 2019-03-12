@@ -17,17 +17,20 @@ https://github.com/spotify/luigi
 
 Luigi is a very lightweight dependency management framework for batch workflows. In our case we can use it to make sure
 the dataset generation and analysis job doesn't run until the download jobs have both succeeded. It will also be useful
-for launching the Spark command with different parameterized input, and also verifying that the job produces some output
+for launching the Spark command with different parameterized inputs, and also verifying that the job produces some output
 for a given day. 
 
 In terms of what you'll see used in this workshop from Luigi:
 
-1. Target = An abstraction around some external artifact. Either a file on disk, S3, a directory, etc. 
-    * Targets define exists(), which returns True/False. (I.E. A file on disk would return True if the path specified exists. Otherwise False.)
+1. Target = An abstraction around some external artifact. (I.E a file on disk, an S3 object, a FTP directory). 
+    * Targets define exists(), which returns True/False. (I.E. A file on disk would return True if the path specified exists on the local file system. Otherwise False.)
 2. Task = Defines a unit of work to be executed with the run() method.
     * Tasks are considered complete if every target returned by output() exists. 
     * Tasks are ready to run if every task in their requires() is complete. 
 3. Parameters = Let us customize an instance of a task. The canonical example of this being for different dates. 
+
+For our pipeline, we we will construct a simple DAG (directed acyclic graph) of tasks. We will have
+our analysis/dataset generation task require two data download tasks. 
 
 
 ## Let's start!
@@ -162,7 +165,7 @@ This is our custom HttpTarget that defines exist() as the url being accessible.
 If urlopen() throws any HttpError, we consider the target unavailable at the URL. 
 We can use this to build a special kind of Luigi task called an `ExternalTask`, which
 is just a task that checks for completeness using output(), but isn't expected to run 
-anything if the task isn't initially satisfied. This comes in extremely handy in the real
+anything if the task isn't initially complete. This comes in extremely handy in the real
 world when we want to model dependencies outside our control, but not have the pipeline
 throw errors if certain dependencies are not ready. In our example, we don't control
 the data availability at the remote location on Dropbox, so we model that as an external dependency. 
@@ -181,7 +184,7 @@ for `data/spins/2019/02/08/spins.snappy.parquet`. This is an effective
 data partitioning strategy in Hadoop HDFS and S3 for laying out large collections of data we receive as somewhat predictable batch updates, usually on a daily or hourly basis. 
 You can very easily send globbed file-paths to programs for let's say an entire month using for example `--input data/spins/2019/02/*`. In that example, we would send all the spins data for Feb 2019 to some program. 
 
-The file was written as snappy-compressed Parquet. I used snappy because it achieves a relatively good compression ratio without much CPU intensity. I used Parquet because it provides a very efficient means of storing columnar data for various queries involving sparse projections over the data. 
+The file was written as snappy-compressed Parquet. I used snappy because it's splittable and achieves a similar compression ratio to bzip but at roughly half the CPU utilization. This starts to matter when you're dealing with terabyte-scale. I used Parquet because it provides a very efficient means of storing columnar data for various queries involving sparse projections over the data. 
 
 ### Step 3. Create DownloadListeners task
 
@@ -200,12 +203,12 @@ class DownloadListeners(luigi.Task):
 The listeners dimension keeps track of all Pandora listeners that could potentially generate song spin events. We're interested in reporting to the music labels which listener IDs were responsible for those song spins. 
 
 You'll notice right away that although this task also takes in a date parameter, it doesn't use it to
-format the url we check against. We will instead use the date parameter to keep a marker file at a subdirectory location that matches the date. If the marker exists, that means we already successfully downloaded the listeners file on the given date. 
+format the url we check against. We will instead use the date parameter to keep a marker file at a local subdirectory tree for the date. If the marker exists, that means we already successfully downloaded the listeners file on the given date. 
 
 This setup was designed to illustrate a slightly different data access pattern that comes up
 a lot in the real world; A static lookup file that doesn't change in name as it's updated. Often you see this with smaller append-only datasets that get updated periodically and reposted to shared locations. Teams go through quite a bit of trouble to manage this pattern, often keeping track of file modification times or comparing byte counts to see if something has changed. For our
 case though we can use a simple pattern. Let's log a marker file for every day we've successfully downloaded the file. This will keep our task from re-downloading the listeners file
-on a day that it has already retrieved the latest file. This pattern works well for dimensions where we can use the newest version of the file to reprocess older days. 
+on a day that it has already retrieved the latest file. 
 
 Let's add the code to create the marker file at the right subdirectory for the date parameter:
 
@@ -308,8 +311,8 @@ def requires(self):
     }
 ```
 
-We also want to define any output targets we expect the Spark job to produce. For now we expect it to 
-produce two output directories, one for the dataset generation and another for the analysis. We also
+We also want to define any output targets we expect the Spark job to produce. This task will 
+produce 2 output directories, one for the dataset generation and another for the analysis. We also
 want to explicitly look for the presence of _SUCCESS files in those locations, since that is a signal
 Spark uses that it wrote all partition data to the location without fault. 
 

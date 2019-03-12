@@ -146,13 +146,13 @@ Additional note: All the dependency jars for compile and testCompile are already
 
 Let's create the packages for both our launcher and tests.
 
-From the basedir scala_spark location in the VM, run `mkdir -p src/{main,test}/scala/com/song/plays`.
+From to the basedir `scala_spark` location in the VM, run `mkdir -p src/{main,test}/scala/com/song/plays`.
 
 For now we will just focus on the src/main object and not the tests, but this command will set us up for later. 
 
 Under `src/main/scala/com/song/plays` create the the file `DatasetGen.scala`
 
-Add the lines
+Add the lines:
 
 ```scala
 package com.song.plays
@@ -169,7 +169,7 @@ object DatasetGen {
 }
 ```
 
-This will setup all the imports we'll need, and define a final Error class to throw in the case our job fails minrows validation. 
+This will setup all the imports we'll need and define a final Error class to throw in the case our job fails minrows validation. 
 
 It also defines a blank main() method which we will fill in later. 
 
@@ -316,9 +316,9 @@ def main(args: Array[String]): Unit = {
       .getOrCreate()
 ```
 
-This will take the String arguments fed at runtime by Spark-submit into the main class and create a Config instance from them with typed values.  We then setup a Spark session instance
-with a single config override for shuffle.partitions. This is set to 1 because for the purposes of this workshop the datasets are very small, and so we can actually get better performance
-with just 1 dataframe partition during operations. In practice this is often best left alone for Spark to optimize at runtime, but you do occassionally see applications set this manually.
+This will take the String arguments fed at runtime by the spark-submit executable into our main class and create a Config instance from them with typed values.  We then setup a Spark session instance
+with a single config override for `spark.sql.shuffle.partitions`. This is set to 1 because for the purposes of this workshop the datasets are very small, and so we can actually get better performance
+with just 1 dataframe partition during operations. In practice this is often best left alone for Spark to optimize at runtime, but you will occassionally see teams set this manually.
 
 Once we have a reference to the `session` variable we can start doing our operations. 
 
@@ -350,12 +350,12 @@ validate(numRows, cfg.minrows)
 } // close of main method
 ```
 
-Note that since count() is considered an action command, this where Spark will start evaluating the previous commands before this and start executing to arrive at the count() state.  Having lots of dataframe count() calls through your application can slow things down, but in our case we have just a single call, and the usefulness far exceeds the small price 
+Note that since count() is considered an action command, this where Spark will start evaluating the previous transformation functions and start executing to arrive at the count() state.  Having lots of dataframe count() calls through your application will slow down overall execution time, but in our case we have just a single call, and the usefulness far exceeds the small price 
 in execution overhead we have to pay. 
 
 Consider what happens if a dataset is malformed and fails validation. The evaluation was all done with transient dataframe operations and there is no cleanup or deletion of any external state which must be done before we can rerun. In practice this is very useful behavior, since it let's us design this job to be fault-tolerant and automated. Each run of the job will either A) produce our desired output artifacts and Luigi will know it succeeded, or B) fail validation or some other Spark error and luigi will elevate that exception. The job can be retried later via crontab automatically. Repeated and consistent Luigi errors tend to get data-engineering teams' attention very quickly. 
 
-Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the execution stages to arrive at the dataframe state again. This is one of the signature characteristics of Spark that has made it so useful for data analysis and transformation. 
+Moreover, once the count() operation on `dedupedDF` is finished Spark will have cached the contents of that dataframe automatically in memory, meaning if we continue to do transformations after the count() on `dedupedDF` it won't have to reevaluate the previous execution stages. This is one of the signature characteristics of Spark that has made it so useful for data analysis and especially machine learning applications. 
 
 CHECKPOINT: Let's run the build command again just to make sure we didn't mistype anything.
 
@@ -376,7 +376,7 @@ dedupedDF.repartition(1).write.
       csv(cfg.dataset_out_path)
 ```
 
-This will take the dataset we just falied, condense it to 1 single gzipped TSV file with a header, and write the output to the path we sent into the application defined at `dataset_out_path`. The music label companies we transfer these files to like to get a single file, even if it's many gigabytes in length and takes longer to produce. 
+This will take the deduplicated, joined dataset we just produced, condense it to 1 single gzipped TSV file with a header and write the output to the path we sent into the application defined at `dataset_out_path`. The music label companies we transfer these files to like to get a single file, even if it's many gigabytes in length and takes longer to produce than a directory of smaller files. 
 
 We also want to define the unicode character `null` as the only quotable character, just so we don't accidentally quote any fields that are part of the artist names or track titles. This might not be necessary anymore in the latest versions of Spark, but it's a habit I've always just kept. Call me crazy.
 
@@ -469,7 +469,7 @@ Then we can manually create a dataframe using `Row.fromTuple()` and supplying a 
 
 With this we're able to call `countSpinsBySub()` and see if the behavior is as expected over a real Spark dataframe. 
 
-Calling `collect()` brings the RDD output back into the driver, and then calling `row.getAs` with positions let's use reconstruct the output into tuples that are easier to compare
+Calling `collect()` brings the RDD output back into the driver, and then calling `row.getAs` with positions let's us reconstruct the output into tuples that are easier to compare
 in assert. For our test case we expect the input to be counted as "2 spins for 90210 Family, and 1 for 90210 Ad supported". 
 
 Now you can start to see why we put the `countSpinsBySub` logic into it's own dedicated function. It makes testing with a dummy dataframe much easier than if everything is bunched together in one giant main() method. 
@@ -529,9 +529,9 @@ test("validate passes") {
 } // end of test suite class.
 ```
 
-The test `validate passes` calls validate and fails with a specific message if a `FailedValidationError` was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is throw and caught with the wildcard `_`.
+The test `validate passes` calls validate() and fails the test with a specific message if a `FailedValidationError` was thrown. This could be a useful test if anyone later tries to modify that function and causes a regression to the logic. Additionally, this test will fail if any other exception is thrown and caught with the wildcard `_`.
 
-The test `validate fails` calls validate and is expected to fail. The only way it passes is if a `FailedValidationError` is thrown from the function. If either and urecognized error is thrown or the validate() function returns normally, then the test should fail. 
+The test `validate fails` calls validate() and is expected to fail validation. The only way the test passes is if a `FailedValidationError` is thrown from the validate() function. If either an unrecognized error is thrown or the validate() function returns normally, then the test should fail. 
 
 CHECKPOINT: Let's make sure our tests pass. 
 
