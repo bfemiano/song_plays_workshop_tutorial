@@ -547,7 +547,7 @@ Run `./gradlew clean test shadowJar`.
 
 CHECKPOINT: From the same directory you ran gradle in, run `ls build/libs/song_plays-1.0.0-jar-with-dependencies.jar`. You should see a file. 
 
-Congradulations if you've made it this far. This is a lot to process and you should be very proud of yourself.
+Congratulations if you've made it this far. This is a lot to process and you should be very proud of yourself.
 
 Now comes the fun part. We are ready to run this against the data we downloaded with our Luigi workflow and look at the output.
 
