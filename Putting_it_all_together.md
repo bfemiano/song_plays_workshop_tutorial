@@ -2,7 +2,7 @@ We're ready now to use the Scala spark application to process our downloaded dat
 
 ## Let's start!
 
-### Step 1. Bring the jar you just built into a top-level ocation. 
+### Step 1. Bring the jar you just built into a top-level location. 
 
 In the VM run:
 
