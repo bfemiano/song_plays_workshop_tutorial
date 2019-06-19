@@ -377,4 +377,4 @@ This progress looks :( because there were failed tasks
 
 Now we're ready to actually make our Spark jar. 
 
-See the next section for [Scala Spark direction](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Scala_Spark.md)
+See the next section for [Scala Spark directions](https://github.com/bfemiano/song_plays_workshop_tutorial/blob/master/Scala_Spark.md)
